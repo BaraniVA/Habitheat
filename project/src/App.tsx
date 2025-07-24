@@ -13,6 +13,8 @@ import NotFound from './components/NotFound';
 import { useHabits } from './hooks/useHabits';
 import { useTheme } from './hooks/useTheme';
 import { Habit, View, HabitTemplate } from './types';
+import { Breadcrumbs } from './components/Breadcrumbs';
+
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -220,6 +222,11 @@ function App() {
         onThemeToggle={toggleTheme}
         onViewChange={(view) => navigateToView(view)}
       />
+      {currentView !== 'not-found' && (
+  <Breadcrumbs currentView={currentView} onNavigate={navigateToView} />
+)}
+
+
       
       {currentView === 'not-found' && (
         <NotFound onNavigateHome={handleNavigateHome} />

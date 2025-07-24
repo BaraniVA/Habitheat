@@ -8,7 +8,7 @@ interface HabitTemplatesViewProps {
   onUseTemplate: (template: HabitTemplate) => void;
 }
 
-export const HabitTemplatesView: React.FC<HabitTemplatesViewProps> = ({ onBack, onUseTemplate }) => {
+export const HabitTemplatesView: React.FC<HabitTemplatesViewProps> = ({  onUseTemplate }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<HabitTemplate | null>(null);
 
@@ -119,14 +119,7 @@ export const HabitTemplatesView: React.FC<HabitTemplatesViewProps> = ({ onBack, 
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-6"
-      >
-        <ArrowLeft className="w-5 h-5" />
-        <span>Back to Dashboard</span>
-      </button>
-
+      
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Habit Templates

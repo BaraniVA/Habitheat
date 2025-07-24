@@ -13,6 +13,8 @@ import NotFound from './components/NotFound';
 import { useHabits } from './hooks/useHabits';
 import { useTheme } from './hooks/useTheme';
 import { Habit, View, HabitTemplate } from './types';
+import LoginView from './components/LoginView';
+import RegisterView from './components/RegisterView';
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -35,9 +37,11 @@ function App() {
     dismissAchievement
   } = useHabits();
   
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem('token'));
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
 
   // URL-based routing for production/vercel
   useEffect(() => {
@@ -50,24 +54,20 @@ function App() {
         '/achievements',
         '/challenges',
         '/mood',
-        '/templates'
+        '/templates',
+        '/login', 
+        '/register'
       ];
 
-      if (path === '/' || path === '/dashboard') {
-        setCurrentView('dashboard');
-      } else if (path === '/insights') {
-        setCurrentView('insights');
-      } else if (path === '/achievements') {
-        setCurrentView('achievements');
-      } else if (path === '/challenges') {
-        setCurrentView('challenges');
-      } else if (path === '/mood') {
-        setCurrentView('mood');
-      } else if (path === '/templates') {
-        setCurrentView('templates');
-      } else if (!validRoutes.includes(path)) {
-        setCurrentView('not-found');
-      }
+      if (path === '/login') setCurrentView('login');
+      else if (path === '/register') setCurrentView('register');
+      else if (path === '/' || path === '/dashboard') setCurrentView('dashboard');
+      else if (path === '/insights') setCurrentView('insights');
+      else if (path === '/achievements') setCurrentView('achievements');
+      else if (path === '/challenges') setCurrentView('challenges');
+      else if (path === '/mood') setCurrentView('mood');
+      else if (path === '/templates') setCurrentView('templates');
+      else if (!validRoutes.includes(path)) setCurrentView('not-found');
     };
 
     handleRouting();
@@ -213,7 +213,7 @@ function App() {
   }, [habits, selectedHabit]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen transition-colors bg-gray-50 dark:bg-gray-900">
       <Header 
         theme={theme} 
         currentView={getHeaderView(currentView)}
@@ -221,6 +221,19 @@ function App() {
         onViewChange={(view) => navigateToView(view)}
       />
       
+      {currentView === 'login' && (
+        <LoginView onLoginSuccess={() => {
+          setIsAuthenticated(true);
+          handleNavigateHome();
+        }} />
+      )}
+
+      {currentView === 'register' && (
+        <RegisterView onRegisterSuccess={() => {
+          window.history.pushState({}, '', '/login');
+          setCurrentView('login');
+        }} />
+      )}
       {currentView === 'not-found' && (
         <NotFound onNavigateHome={handleNavigateHome} />
       )}

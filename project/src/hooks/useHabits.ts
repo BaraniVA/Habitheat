@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Habit, Achievement, Challenge, Mood, HabitTemplate } from '../types';
 import { saveHabits, loadHabits, saveAchievements, loadAchievements } from '../utils/storage';
-import { checkAchievements } from '../utils/achievements';
+// 1. UPDATED: Import the correct function name
+import { checkNewAchievements } from '../utils/achievements'; 
 import { formatDate } from '../utils/dateUtils';
 
 export const useHabits = () => {
@@ -27,20 +28,17 @@ export const useHabits = () => {
     setHabits(updatedHabits);
     saveHabits(updatedHabits);
     
-    // Check for new achievements
-    const newAchievs = checkAchievements(updatedHabits, achievements);
+    // 2. UPDATED: Use the correct function here
+    const newAchievs = checkNewAchievements(updatedHabits, achievements);
     if (newAchievs.length > 0) {
       const updatedAchievements = [...achievements, ...newAchievs];
       setAchievements(updatedAchievements);
-      setNewAchievements(newAchievs);
+      setNewAchievements(prev => [...prev, ...newAchievs]); // Append to allow multiple notifications
       saveAchievements(updatedAchievements);
-      
-      // Clear new achievements after 5 seconds
-      setTimeout(() => setNewAchievements([]), 5000);
     }
   }, [achievements]);
 
-  const addHabit = useCallback((habitData: Omit<Habit, 'id' | 'createdAt' | 'logs'>) => {
+  const addHabit = useCallback((habitData: Omit<Habit, 'id' | 'createdAt' | 'logs' | 'isArchived'>) => {
     const newHabit: Habit = {
       ...habitData,
       id: crypto.randomUUID(),
@@ -102,11 +100,11 @@ export const useHabits = () => {
         let newStatus: boolean | undefined;
         
         if (currentStatus === undefined) {
-          newStatus = true; // No log -> completed
+          newStatus = true;
         } else if (currentStatus === true) {
-          newStatus = false; // Completed -> missed
+          newStatus = false;
         } else {
-          newStatus = undefined; // Missed -> no log
+          newStatus = undefined;
         }
         
         const updatedLogs = { ...habit.logs };
@@ -129,9 +127,16 @@ export const useHabits = () => {
     const habit = habits.find(h => h.id === habitId);
     
     if (habit && habit.logs[today] !== true) {
-      toggleHabitCompletion(habitId, today);
+      const updatedHabits = habits.map(h => {
+        if (h.id === habitId) {
+          const newLogs = { ...h.logs, [today]: true };
+          return { ...h, logs: newLogs };
+        }
+        return h;
+      });
+      saveToStorage(updatedHabits);
     }
-  }, [habits, toggleHabitCompletion]);
+  }, [habits, saveToStorage]);
 
   const addNote = useCallback((habitId: string, date: string, note: string) => {
     const updatedHabits = habits.map(habit => {

@@ -1,67 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Trophy, X } from 'lucide-react';
 import { Achievement } from '../types';
+import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 interface AchievementNotificationProps {
-  achievements: Achievement[];
-  onDismiss: (id: string) => void;
+  achievement: Achievement;
+  t: any; // Toast object from react-hot-toast
 }
 
-export const AchievementNotification: React.FC<AchievementNotificationProps> = ({
-  achievements,
-  onDismiss
-}) => {
-  const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
-
-  useEffect(() => {
-    if (achievements.length > 0 && !currentAchievement) {
-      setCurrentAchievement(achievements[0]);
-    }
-  }, [achievements, currentAchievement]);
-
-  const handleDismiss = () => {
-    if (currentAchievement) {
-      onDismiss(currentAchievement.id);
-      setCurrentAchievement(null);
-      
-      // Show next achievement if any
-      const remaining = achievements.filter(a => a.id !== currentAchievement.id);
-      if (remaining.length > 0) {
-        setTimeout(() => setCurrentAchievement(remaining[0]), 500);
-      }
-    }
-  };
-
-  if (!currentAchievement) return null;
-
+export const AchievementNotification: React.FC<AchievementNotificationProps> = ({ achievement, t }) => {
   return (
-    <div className="fixed top-4 right-4 z-50 animate-scale-in">
-      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-2xl p-6 shadow-lg max-w-sm">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <Trophy className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg">Achievement Unlocked!</h3>
-            </div>
-          </div>
-          <button
-            onClick={handleDismiss}
-            className="p-1 hover:bg-white/20 rounded-full transition-colors"
-          >
+    <motion.div
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
+      className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg max-w-sm border border-gray-200 dark:border-gray-700"
+    >
+      <div className="flex items-start">
+        <div className="text-3xl mr-4">{achievement.icon}</div>
+        <div className="flex-grow">
+            <h3 className="font-bold text-gray-900 dark:text-white">Achievement Unlocked!</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{achievement.title}</p>
+        </div>
+        <button
+            onClick={() => toast.dismiss(t.id)}
+            className="p-1 text-gray-400 hover:text-gray-800 dark:hover:text-white rounded-full transition-colors"
+        >
             <X className="w-4 h-4" />
-          </button>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{currentAchievement.icon}</span>
-          <div>
-            <div className="font-semibold">{currentAchievement.title}</div>
-            <div className="text-sm opacity-90">{currentAchievement.description}</div>
-          </div>
-        </div>
+        </button>
       </div>
-    </div>
+    </motion.div>
   );
 };

@@ -1,6 +1,6 @@
 // src/components/WidgetSettingsModal.tsx
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
 // Define props for the modal
 interface WidgetSettingsModalProps {
@@ -26,6 +26,19 @@ const WidgetSettingsModal: React.FC<WidgetSettingsModalProps> = ({
   enabledWidgets,
   onToggleWidget,
 }) => {
+  
+  useEffect(() => {
+    if(isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null; // Don't render if not open
 
   return (

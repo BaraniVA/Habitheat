@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
-  User, 
+  // User, 
   Edit3, 
   Camera, 
   Flame, 
@@ -10,7 +10,7 @@ import {
   Award, 
   Calendar,
   Smile,
-  Target,
+  // Target,
   Zap
 } from 'lucide-react';
 
@@ -49,6 +49,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
     habitsCompleted: 218,
     joinDate: "January 2024"
   };
+ 
+  // tabtitle
+                useEffect(()=>{
+                  document.title='Habit Heat-My Profile'
+                },[])
 
   const achievements: Achievement[] = [
     {

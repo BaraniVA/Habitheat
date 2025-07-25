@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Clock, Target, Lightbulb, Plus } from 'lucide-react';
 import { HabitTemplate } from '../types';
 import { HABIT_TEMPLATES, getTemplatesByCategory } from '../utils/habitTemplates';
@@ -25,6 +25,13 @@ export const HabitTemplatesView: React.FC<HabitTemplatesViewProps> = ({ onBack, 
       default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
     }
   };
+
+  // tabtitle
+        useEffect(()=>{
+          document.title='Habit Heat-Templates'
+        },[])
+
+  
 
   if (selectedTemplate) {
     return (

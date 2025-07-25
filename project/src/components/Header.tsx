@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence} from 'framer-motion';
+// import { motion, AnimatePresence} from 'framer-motion';
 import { Moon, Sun, Flame, BarChart3, Trophy, Settings, Target, Smile, BookOpen, Menu, X, ArrowLeft,User } from 'lucide-react';
 
 // Types
@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <AnimatePresence>
+            {/* <AnimatePresence>
               {currentView !== 'dashboard' && (
                 <motion.button
                   key="back-button"
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
                   <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-300" />
                 </motion.button>
               )}
-            </AnimatePresence>
+            </AnimatePresence> */}
 
             {/* Logo - Clickable and Responsive */}
             <button 
@@ -118,18 +118,19 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
-              {navItems.map(({ view, icon: Icon, label }) => (
+              {navItems.map(({ view, icon: Icon, label  }) => (
                 <button
                   key={view}
+
                   onClick={() => onViewChange(view)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-h-[44px] ${
+                  className={`flex flex-col items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-h-[44px] ${
                     currentView === view
-                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm'
+                      ? 'bg-orange-200 dark:bg-blue-900/50 text-orange-700 dark:text-blue-300 shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xl:inline whitespace-nowrap">{label}</span>
+                  <Icon className={` w-4 h-4 flex-shrink-0 `} />
+                  <span className="hidden md:inline whitespace-nowrap">{label}</span>
                 </button>
               ))}
             </nav>
@@ -210,7 +211,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
                       onClick={() => handleViewChange(view)}
                       className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left font-medium transition-all duration-200 min-h-[56px] ${
                         currentView === view
-                          ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm'
+                          ? 'bg-orange-200 dark:bg-blue-900/50 text-orange-700 dark:text-blue-300 shadow-sm'
                           : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     >

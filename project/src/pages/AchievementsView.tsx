@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Trophy, Star, Lock } from 'lucide-react';
 import { Achievement } from '../types';
 import { ACHIEVEMENT_DEFINITIONS } from '../utils/achievements';
@@ -62,6 +62,11 @@ export const AchievementsView: React.FC<AchievementsViewProps> = ({ achievements
   const unlockedCount = achievements.length;
   const totalCount = ACHIEVEMENT_DEFINITIONS.length;
   const progressPercentage = (unlockedCount / totalCount) * 100;
+  
+  // tabtitle
+  useEffect(()=>{
+    document.title='Habit Heat -Achievements'
+  },[])
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">

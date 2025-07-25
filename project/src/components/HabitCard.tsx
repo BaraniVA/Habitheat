@@ -106,12 +106,24 @@ export const HabitCard: React.FC<HabitCardProps> = ({
           <Calendar className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500 dark:text-gray-400">Last 30 days</span>
           {habit.category && (
-            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full ml-auto">
+              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full ml-auto -mt-8">
               {habit.category}
-            </span>
+              </span>
           )}
         </div>
-        <MiniHeatmap habit={habit} />
+        <div className="flex items-center justify-between">
+          <MiniHeatmap habit={habit} />
+          <div className={`text-xs font-mono uppercase ${
+            habit.priority === "high"
+            ? "text-red-500"
+            : habit.priority === "medium"
+            ? "text-yellow-500"
+            : "text-green-500"
+          }`}>
+            <span className="relative">{`PRIORITY: ${habit.priority?.toUpperCase()}`}</span>
+            <span className="absolute inset-0 blur-md opacity-50">{`PRIORITY: ${habit.priority?.toUpperCase()}`}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

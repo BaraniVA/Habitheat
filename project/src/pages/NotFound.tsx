@@ -1,10 +1,18 @@
 import { ArrowLeft, Flame } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface NotFoundProps {
   onNavigateHome: () => void;
 }
 
 export default function NotFound({ onNavigateHome }: NotFoundProps) {
+
+   
+  // tabtitle
+              useEffect(()=>{
+                document.title='Habit Heat-Page Not Found'
+              },[])
+
   const handleGoBack = () => {
     if (window.history.length > 1) {
       window.history.back();

@@ -1,16 +1,16 @@
-import SelfCareTip from "./SelfCareTip";
+import SelfCareTip from "../components/SelfCareTip";
 import React, { useState, useEffect } from 'react'; // Import useEffect
-import { Plus, Filter, Search, Archive, Settings } from 'lucide-react'; // Import Settings icon
+import { Plus, Search, Archive, Settings } from 'lucide-react'; // Import Settings icon
 import { Habit, SortOption, FilterOption } from '../types';
-import { HabitCard } from './HabitCard';
-import { QuickActions } from './QuickActions';
+import { HabitCard } from '../components/HabitCard';
+import { QuickActions } from '../components/QuickActions';
 
 // IMPORTS FOR YOUR WIDGETS
-import CurrentStreakWidget from './widgets/CurrentStreakWidget';
-import DailyCompletionRateWidget from './widgets/DailyCompletionRateWidget';
-import TotalHabitsCompletedWidget from './widgets/TotalHabitsCompletedWidget';
+import CurrentStreakWidget from '../components/widgets/CurrentStreakWidget';
+import DailyCompletionRateWidget from '../components/widgets/DailyCompletionRateWidget';
+import TotalHabitsCompletedWidget from '../components/widgets/TotalHabitsCompletedWidget';
 // NEW IMPORT FOR WIDGET SETTINGS MODAL
-import WidgetSettingsModal from './WidgetSettingsModal'; // Adjust path if you put it in widgets/
+import WidgetSettingsModal from '../components/WidgetSettingsModal'; // Adjust path if you put it in widgets/
 
 interface DashboardProps {
   habits: Habit[];
@@ -38,6 +38,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [sortBy, setSortBy] = useState<SortOption>('name');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [showArchived, setShowArchived] = useState(false);
+
+  
+   // tabtitle
+      useEffect(()=>{
+        document.title='Habit Heat-Track Habits'
+      },[])
 
   // NEW STATE FOR WIDGET CUSTOMIZATION
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);

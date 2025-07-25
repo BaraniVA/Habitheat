@@ -14,9 +14,14 @@ export const ChallengesView: React.FC<ChallengesViewProps> = ({
   habits,
   challenges,
   onStartChallenge,
-  onCompleteChallenge
+  // onCompleteChallenge
 }) => {
   const [availableChallenges, setAvailableChallenges] = useState<Challenge[]>([]);
+   
+  // tabtitle
+    useEffect(()=>{
+      document.title='Habit Heat-Challenges'
+    },[])
 
   useEffect(() => {
     if (challenges.length === 0) {

@@ -125,9 +125,24 @@ export const HabitDetail: React.FC<HabitDetailProps> = ({
           <div className="flex items-center gap-4">
             <span className="text-4xl">{habit.emoji}</span>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {habit.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <div className="text-4xl font-bold text-gray-900 dark:text-white">
+                  {habit.name}
+                </div>
+                <div
+                  className={`text-s ml-4 font-mono uppercase relative ${
+                    habit.priority === "high"
+                      ? "text-red-500"
+                      : habit.priority === "medium"
+                      ? "text-yellow-500"
+                      : "text-green-500"
+                  }`}
+                >
+                  <span className="relative">{`PRIORITY: ${habit.priority?.toUpperCase()}`}</span>
+                  <span className="absolute inset-0 blur-md opacity-50">{`PRIORITY: ${habit.priority?.toUpperCase()}`}</span>
+                </div>
+              </div>
+
               <div className="flex items-center gap-4 mt-1">
                 <p className="text-gray-500 dark:text-gray-400">
                   Created {new Date(habit.createdAt).toLocaleDateString()}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   TrendingUp,
   TrendingDown,
@@ -57,6 +57,13 @@ interface InsightsViewProps {
 
 export const InsightsView: React.FC<InsightsViewProps> = ({ habits }) => {
   const insights = generateInsights(habits);
+
+
+   // tabtitle
+          useEffect(()=>{
+            document.title='Habit Heat-Insights'
+          },[])
+  
 
   /* --------------------------------------------------------------
      NOTE on Tailwind + dynamic color strings:

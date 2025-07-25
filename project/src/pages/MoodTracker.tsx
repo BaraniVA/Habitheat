@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Smile, Frown, Meh, Heart, Zap, Cloud } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Zap, Cloud } from 'lucide-react';
 import { Mood } from '../types';
 import { formatDate } from '../utils/dateUtils';
 
@@ -36,6 +36,11 @@ export const MoodTracker: React.FC<MoodTrackerProps> = ({ moods, onAddMood }) =>
 
   const moodEmojis = ['😢', '😕', '😐', '😊', '😄'];
   const moodLabels = ['Terrible', 'Bad', 'Okay', 'Good', 'Great'];
+
+   // tabtitle
+            useEffect(()=>{
+              document.title='Habit Heat-Mood'
+            },[])
 
   const handleSubmit = () => {
     const mood: Mood = {

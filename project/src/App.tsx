@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
-import { Dashboard } from './components/Dashboard';
+import { Dashboard } from './pages/Dashboard';
 import { HabitDetail } from './components/HabitDetail';
 import { AddHabitModal } from './components/AddHabitModal';
-import { InsightsView } from './components/InsightsView';
-import { AchievementsView } from './components/AchievementsView';
-import { ChallengesView } from './components/ChallengesView';
-import { MoodTracker } from './components/MoodTracker';
-import { HabitTemplatesView } from './components/HabitTemplatesView';
+import { InsightsView } from './pages/InsightsView';
+import { AchievementsView } from './pages/AchievementsView';
+import { ChallengesView } from './pages/ChallengesView';
+import { MoodTracker } from './pages/MoodTracker';
+import { HabitTemplatesView } from './pages/HabitTemplatesView';
 import { AchievementNotification } from './components/AchievementNotification';
+
 import NotFound from './components/NotFound';
 import Landingpage  from './components/Landingpage';
 import { useHabits } from './hooks/useHabits';
 import { useTheme } from './hooks/useTheme';
 import { Habit, View, HabitTemplate } from './types';
-import ProfilePage from './components/ProfilePage';
+import ProfilePage from './pages/ProfilePage';
 
 
 function App() {

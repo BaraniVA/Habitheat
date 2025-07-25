@@ -14,6 +14,8 @@ import Landingpage  from './components/Landingpage';
 import { useHabits } from './hooks/useHabits';
 import { useTheme } from './hooks/useTheme';
 import { Habit, View, HabitTemplate } from './types';
+import ProfilePage from './components/ProfilePage';
+
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -51,7 +53,8 @@ function App() {
         '/achievements',
         '/challenges',
         '/mood',
-        '/templates'
+        '/templates',
+        '/profile'
       ];
       
       if(path ==='/'){
@@ -69,6 +72,8 @@ function App() {
         setCurrentView('mood');
       } else if (path === '/templates') {
         setCurrentView('templates');
+      } else if (path === '/profile') {
+        setCurrentView('profile');
       } else if (!validRoutes.includes(path)) {
         setCurrentView('not-found');
       }
@@ -92,7 +97,8 @@ function App() {
       achievements: '/achievements', 
       challenges: '/challenges',
       mood: '/mood',
-      templates: '/templates'
+      templates: '/templates',
+      profile: '/profile'
     };
     
     const path = routes[view];
@@ -102,11 +108,12 @@ function App() {
     }
   };
 
-  const getHeaderView = (view: View): 'landingpage'|'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' => {
+
+  const getHeaderView = (view: View): 'landingpage'|'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates'| 'profile' => {
     if (['not-found', 'habit-detail', 'add-habit', 'social'].includes(view)) {
       return 'dashboard';
     }
-    return view as 'landingpage'|'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates';
+    return view as 'landingpage'|'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates'| 'profile' ;
   };
 
   const handleNavigateHome = () => {
@@ -286,6 +293,10 @@ function App() {
           onArchive={() => handleArchiveHabit()}
           onAddNote={handleAddNote}
         />
+      )}
+
+      {currentView === 'profile' && (
+        <ProfilePage />
       )}
 
       <AddHabitModal

@@ -39,7 +39,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ habits, onMarkToday,
           </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="text-lg font-semibold text-gray-900 dark:text-white">
             {completionRate}%
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">

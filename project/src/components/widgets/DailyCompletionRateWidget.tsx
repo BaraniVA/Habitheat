@@ -17,8 +17,9 @@ const DailyCompletionRateWidget: React.FC<DailyCompletionRateWidgetProps> = ({ c
     // Replaced inline style with Tailwind CSS classes
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center shadow-md 
                 flex flex-col justify-center items-center min-h-[150px]">
-      <div className="text-5xl font-bold text-green-500 mb-1"> {/* Adjusted color to a green */}
-        {completionPercentage}%
+      <div className="flex items-baseline justify-center mb-1">
+        <span className="text-5xl font-bold text-green-500">&nbsp;&nbsp;{completionPercentage}</span>
+        <span className="text-2xl font-bold text-green-500 ml-1">%</span>
       </div>
       <div className="text-base text-gray-600 dark:text-gray-300">Daily Habits Completed</div>
       {totalHabitsToday > 0 && (

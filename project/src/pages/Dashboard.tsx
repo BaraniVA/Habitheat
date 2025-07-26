@@ -1,16 +1,22 @@
 import SelfCareTip from "../components/SelfCareTip";
-import React, { useState, useEffect } from 'react'; // Import useEffect
-import { Plus, Search, Archive, Settings } from 'lucide-react'; // Import Settings icon
-import { Habit, SortOption, FilterOption } from '../types';
-import { HabitCard } from '../components/HabitCard';
-import { QuickActions } from '../components/QuickActions';
+import React, {useState, useEffect} from "react"; // Import useEffect
+import {Plus, Search, Archive, Settings, Filter} from "lucide-react"; // Import Settings and Filter icons
+import {Habit, SortOption, FilterOption, AdvancedFilter} from "../types";
+import {HabitCard} from "../components/HabitCard";
+import {QuickActions} from "../components/QuickActions";
+import {AdvancedFilterModal} from "../components/AdvancedFilterModal";
+import {FilterSummary} from "../components/FilterSummary";
+import {
+  createDefaultAdvancedFilter,
+  filterHabitsAdvanced,
+} from "../utils/advancedFilter";
 
 // IMPORTS FOR YOUR WIDGETS
-import CurrentStreakWidget from '../components/widgets/CurrentStreakWidget';
-import DailyCompletionRateWidget from '../components/widgets/DailyCompletionRateWidget';
-import TotalHabitsCompletedWidget from '../components/widgets/TotalHabitsCompletedWidget';
+import CurrentStreakWidget from "../components/widgets/CurrentStreakWidget";
+import DailyCompletionRateWidget from "../components/widgets/DailyCompletionRateWidget";
+import TotalHabitsCompletedWidget from "../components/widgets/TotalHabitsCompletedWidget";
 // NEW IMPORT FOR WIDGET SETTINGS MODAL
-import WidgetSettingsModal from '../components/WidgetSettingsModal'; // Adjust path if you put it in widgets/
+import WidgetSettingsModal from "../components/WidgetSettingsModal"; // Adjust path if you put it in widgets/
 
 interface DashboardProps {
   habits: Habit[];
@@ -22,9 +28,9 @@ interface DashboardProps {
 
 // Define IDs for your widgets (MUST match 'id' in WidgetSettingsModal.tsx's availableWidgets)
 const WIDGET_IDS = {
-    CURRENT_STREAK: 'currentStreak',
-    DAILY_COMPLETION: 'dailyCompletion',
-    TOTAL_COMPLETED: 'totalCompleted',
+  CURRENT_STREAK: "currentStreak",
+  DAILY_COMPLETION: "dailyCompletion",
+  TOTAL_COMPLETED: "totalCompleted",
 };
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -32,63 +38,98 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onAddHabit,
   onHabitClick,
   onMarkToday,
-  onArchiveHabit
+  onArchiveHabit,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('name');
-  const [filterBy, setFilterBy] = useState<FilterOption>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("name");
+  const [filterBy, setFilterBy] = useState<FilterOption>("all");
   const [showArchived, setShowArchived] = useState(false);
 
-  
-   // tabtitle
-      useEffect(()=>{
-        document.title='Habit Heat-Track Habits'
-      },[])
+  // Advanced Filter State
+  const [advancedFilter, setAdvancedFilter] = useState<AdvancedFilter>(() => {
+    try {
+      const saved = localStorage.getItem("habit-heat-advanced-filter");
+      return saved ? JSON.parse(saved) : createDefaultAdvancedFilter();
+    } catch {
+      return createDefaultAdvancedFilter();
+    }
+  });
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+  const [useAdvancedFilter, setUseAdvancedFilter] = useState(false);
+
+  // tabtitle
+  useEffect(() => {
+    document.title = "Habit Heat-Track Habits";
+  }, []);
+
+  // Save advanced filter to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem(
+      "habit-heat-advanced-filter",
+      JSON.stringify(advancedFilter)
+    );
+  }, [advancedFilter]);
 
   // NEW STATE FOR WIDGET CUSTOMIZATION
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   // Initialize enabledWidgets from localStorage or with defaults
   const [enabledWidgets, setEnabledWidgets] = useState<string[]>(() => {
-    const savedWidgets = localStorage.getItem('enabledWidgets');
-    return savedWidgets ? JSON.parse(savedWidgets) : [
-        WIDGET_IDS.CURRENT_STREAK,
-        WIDGET_IDS.DAILY_COMPLETION,
-        WIDGET_IDS.TOTAL_COMPLETED // Default: all three enabled
-    ];
+    const savedWidgets = localStorage.getItem("enabledWidgets");
+    return savedWidgets
+      ? JSON.parse(savedWidgets)
+      : [
+          WIDGET_IDS.CURRENT_STREAK,
+          WIDGET_IDS.DAILY_COMPLETION,
+          WIDGET_IDS.TOTAL_COMPLETED, // Default: all three enabled
+        ];
   });
 
   // NEW useEffect to save enabled widgets to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('enabledWidgets', JSON.stringify(enabledWidgets));
+    localStorage.setItem("enabledWidgets", JSON.stringify(enabledWidgets));
   }, [enabledWidgets]);
 
-  const activeHabits = habits.filter(h => !h.isArchived);
-  const archivedHabits = habits.filter(h => h.isArchived);
+  const activeHabits = habits.filter((h) => !h.isArchived);
+  const archivedHabits = habits.filter((h) => h.isArchived);
   const displayHabits = showArchived ? archivedHabits : activeHabits;
 
-  const filteredAndSortedHabits = displayHabits
-    .filter(habit => {
-      const matchesSearch = habit.name.toLowerCase().includes(searchTerm.toLowerCase());
+  // Apply advanced filter first if enabled, then basic filter
+  let filteredHabits = displayHabits;
+
+  if (useAdvancedFilter) {
+    filteredHabits = filterHabitsAdvanced(filteredHabits, advancedFilter);
+  }
+
+  const filteredAndSortedHabits = filteredHabits
+    .filter((habit) => {
+      const matchesSearch = habit.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
       if (!matchesSearch) return false;
 
-      if (filterBy === 'all') return true;
-      
-      const today = new Date().toISOString().split('T')[0];
+      if (filterBy === "all") return true;
+
+      const today = new Date().toISOString().split("T")[0];
       const completedToday = habit.logs[today] === true;
       const hasLogs = Object.keys(habit.logs).length > 0;
-      
+
       switch (filterBy) {
-        case 'active':
+        case "active":
           return hasLogs && !completedToday;
-        case 'struggling':
-          return hasLogs && Object.values(habit.logs).filter(Boolean).length / Object.keys(habit.logs).length < 0.5;
-        case 'perfect':
+        case "struggling":
+          return (
+            hasLogs &&
+            Object.values(habit.logs).filter(Boolean).length /
+              Object.keys(habit.logs).length <
+              0.5
+          );
+        case "perfect":
           return hasLogs && Object.values(habit.logs).every(Boolean);
-        case 'priority-high':
-          return habit.priority === 'high';
-        case 'quick':
+        case "priority-high":
+          return habit.priority === "high";
+        case "quick":
           return (habit.estimatedTime || 0) <= 15;
-        case 'long':
+        case "long":
           return (habit.estimatedTime || 0) > 30;
         default:
           return true;
@@ -96,17 +137,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'name':
+        case "name":
           return a.name.localeCompare(b.name);
-        case 'created':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'priority':
-          const priorityOrder = { high: 3, medium: 2, low: 1 };
-          return (priorityOrder[b.priority || 'medium'] || 2) - (priorityOrder[a.priority || 'medium'] || 2);
-        case 'time':
+        case "created":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "priority":
+          const priorityOrder = {high: 3, medium: 2, low: 1};
+          return (
+            (priorityOrder[b.priority || "medium"] || 2) -
+            (priorityOrder[a.priority || "medium"] || 2)
+          );
+        case "time":
           return (a.estimatedTime || 0) - (b.estimatedTime || 0);
-        case 'streak':
-        case 'completion':
+        case "streak":
+        case "completion":
           return 0; // Would need streak/completion calculation
         default:
           return 0;
@@ -116,14 +162,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // --- Calculate data for widgets based on 'habits' prop ---
   const calculateLongestStreak = (habits: Habit[]): number => {
     let overallLongestStreak = 0;
-    habits.forEach(habit => {
+    habits.forEach((habit) => {
       let currentStreak = 0;
       let maxStreakForHabit = 0;
       const sortedDates = Object.keys(habit.logs).sort();
 
       for (let i = 0; i < sortedDates.length; i++) {
         const date = sortedDates[i];
-        if (habit.logs[date]) { // If habit was completed on this date
+        if (habit.logs[date]) {
+          // If habit was completed on this date
           currentStreak++;
         } else {
           currentStreak = 0; // Reset streak if missed
@@ -135,41 +182,61 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return overallLongestStreak;
   };
 
-  const calculateDailyCompletion = (habits: Habit[]): { completed: number; total: number } => {
-    const today = new Date().toISOString().split('T')[0];
-    const habitsForToday = habits.filter(h => !h.isArchived); 
-    const completedToday = habitsForToday.filter(h => h.logs[today] === true).length;
-    return { completed: completedToday, total: habitsForToday.length };
+  const calculateDailyCompletion = (
+    habits: Habit[]
+  ): {completed: number; total: number} => {
+    const today = new Date().toISOString().split("T")[0];
+    const habitsForToday = habits.filter((h) => !h.isArchived);
+    const completedToday = habitsForToday.filter(
+      (h) => h.logs[today] === true
+    ).length;
+    return {completed: completedToday, total: habitsForToday.length};
   };
 
   const calculateTotalCompletedHabits = (habits: Habit[]): number => {
     let count = 0;
-    habits.forEach(habit => {
+    habits.forEach((habit) => {
       count += Object.values(habit.logs).filter(Boolean).length;
     });
     return count;
   };
 
   const longestStreak = calculateLongestStreak(habits);
-  const { completed: completedHabitsToday, total: totalHabitsToday } = calculateDailyCompletion(habits);
+  const {completed: completedHabitsToday, total: totalHabitsToday} =
+    calculateDailyCompletion(habits);
   const totalCompletedHabits = calculateTotalCompletedHabits(habits);
   // --- END CALCULATIONS ---
 
   // NEW: Function to toggle widget
   const handleToggleWidget = (widgetId: string, isEnabled: boolean) => {
-    setEnabledWidgets(prev => 
-      isEnabled 
-        ? [...prev, widgetId] 
-        : prev.filter(id => id !== widgetId)
+    setEnabledWidgets((prev) =>
+      isEnabled ? [...prev, widgetId] : prev.filter((id) => id !== widgetId)
     );
   };
 
+  // Advanced Filter Handlers
+  const handleApplyAdvancedFilter = (filter: AdvancedFilter) => {
+    setAdvancedFilter(filter);
+    setUseAdvancedFilter(true);
+    setFilterBy("all"); // Reset basic filter when using advanced
+  };
+
+  const handleResetAdvancedFilter = () => {
+    setAdvancedFilter(createDefaultAdvancedFilter());
+    setUseAdvancedFilter(false);
+  };
+
+  const handleClearAdvancedFilter = () => {
+    setUseAdvancedFilter(false);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
       {/* NEW: Widgets Section with Settings Button */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          Dashboard Overview
+        </h2>
         <button
           onClick={() => setShowWidgetSettings(true)}
           className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -179,20 +246,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
       <div className="flex justify-center">
-        <SelfCareTip/>
+        <SelfCareTip />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {enabledWidgets.includes(WIDGET_IDS.CURRENT_STREAK) && (
           <CurrentStreakWidget longestStreak={longestStreak} />
         )}
         {enabledWidgets.includes(WIDGET_IDS.DAILY_COMPLETION) && (
-          <DailyCompletionRateWidget 
-            completedHabitsToday={completedHabitsToday} 
-            totalHabitsToday={totalHabitsToday} 
+          <DailyCompletionRateWidget
+            completedHabitsToday={completedHabitsToday}
+            totalHabitsToday={totalHabitsToday}
           />
         )}
         {enabledWidgets.includes(WIDGET_IDS.TOTAL_COMPLETED) && (
-          <TotalHabitsCompletedWidget totalCompletedHabits={totalCompletedHabits} />
+          <TotalHabitsCompletedWidget
+            totalCompletedHabits={totalCompletedHabits}
+          />
         )}
       </div>
       {/* END NEW: Widgets Section */}
@@ -207,7 +276,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Quick Actions */}
       {!showArchived && (
-        <QuickActions 
+        <QuickActions
           habits={activeHabits}
           onMarkToday={onMarkToday}
           onAddHabit={onAddHabit}
@@ -217,29 +286,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {showArchived ? 'Archived Habits' : 'Your Habits'}
+            {showArchived ? "Archived Habits" : "Your Habits"}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
             {displayHabits.length === 0
-              ? showArchived ? 'No archived habits' : 'Start building great habits today'
-              : `${displayHabits.length} habit${displayHabits.length !== 1 ? 's' : ''}`
-            }
+              ? showArchived
+                ? "No archived habits"
+                : "Start building great habits today"
+              : `${displayHabits.length} habit${
+                  displayHabits.length !== 1 ? "s" : ""
+                }`}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowArchived(!showArchived)}
             className={`p-2 rounded-full transition-colors ${
-              showArchived 
-                ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              showArchived
+                ? "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
-            title={showArchived ? 'Show active habits' : 'Show archived habits'}
+            title={showArchived ? "Show active habits" : "Show archived habits"}
           >
             <Archive className="w-5 h-5" />
           </button>
-          
+
           {!showArchived && (
             <button
               onClick={onAddHabit}
@@ -284,7 +356,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <select
             value={filterBy}
             onChange={(e) => setFilterBy(e.target.value as FilterOption)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={useAdvancedFilter}
+            className={`px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              useAdvancedFilter ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             <option value="all">All Habits</option>
             <option value="active">Active Today</option>
@@ -294,7 +369,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <option value="quick">Quick (≤15min)</option>
             <option value="long">Long (30min)</option>
           </select>
+
+          {/* Advanced Filter Button */}
+          <button
+            onClick={() => setShowAdvancedFilter(true)}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${
+              useAdvancedFilter
+                ? "bg-blue-50 dark:bg-blue-900 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300"
+                : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            }`}
+            title="Advanced Filters"
+          >
+            <Filter className="w-4 h-4" />
+            <span className="hidden sm:inline">
+              {useAdvancedFilter ? "Advanced" : "Filters"}
+            </span>
+          </button>
         </div>
+      )}
+
+      {/* Advanced Filter Summary */}
+      {useAdvancedFilter && (
+        <FilterSummary
+          filter={advancedFilter}
+          onClearFilter={handleClearAdvancedFilter}
+          className="mt-4"
+        />
       )}
 
       {filteredAndSortedHabits.length === 0 ? (
@@ -307,15 +407,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            {showArchived ? 'No archived habits' : searchTerm ? 'No habits found' : 'No habits yet'}
+            {showArchived
+              ? "No archived habits"
+              : searchTerm
+              ? "No habits found"
+              : "No habits yet"}
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-            {showArchived 
-              ? 'Archived habits will appear here when you archive them.'
-              : searchTerm 
-                ? 'Try adjusting your search or filters.'
-                : 'Create your first habit to start tracking your daily progress and building consistency.'
-            }
+            {showArchived
+              ? "Archived habits will appear here when you archive them."
+              : searchTerm
+              ? "Try adjusting your search or filters."
+              : "Create your first habit to start tracking your daily progress and building consistency."}
           </p>
           {!showArchived && !searchTerm && (
             <button
@@ -340,6 +443,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ))}
         </div>
       )}
+
+      {/* Advanced Filter Modal */}
+      <AdvancedFilterModal
+        isOpen={showAdvancedFilter}
+        onClose={() => setShowAdvancedFilter(false)}
+        filter={advancedFilter}
+        onApplyFilter={handleApplyAdvancedFilter}
+        onResetFilter={handleResetAdvancedFilter}
+      />
     </div>
   );
 };

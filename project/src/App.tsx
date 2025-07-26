@@ -15,6 +15,8 @@ import { useTheme } from './hooks/useTheme';
 import { Habit, View, HabitTemplate } from './types';
 import ProfilePage from './pages/ProfilePage';
 import { Footer } from './components/Footer';
+import { Breadcrumbs } from './components/Breadcrumbs';
+
 
 
 
@@ -228,6 +230,28 @@ function App() {
         onThemeToggle={toggleTheme}
         onViewChange={(view) => navigateToView(view)}
       />
+
+
+
+      <Breadcrumbs
+  path={window.location.pathname}
+  onNavigate={(path) => {
+    window.history.pushState({}, '', path);
+    const routeMap: Record<string, View> = {
+      '/': 'dashboard',
+      '/dashboard': 'dashboard',
+      '/insights': 'insights',
+      '/achievements': 'achievements',
+      '/challenges': 'challenges',
+      '/mood': 'mood',
+      '/templates': 'templates',
+      '/profile': 'profile'
+    };
+    const matchedView = routeMap[path] || 'not-found';
+    setCurrentView(matchedView);
+  }}
+/>
+
       
       {currentView === 'not-found' && (
         <NotFound onNavigateHome={handleNavigateHome} />
@@ -285,10 +309,10 @@ function App() {
           onAddNote={handleAddNote}
         />
       )}
+{currentView === 'profile' && (
+  <ProfilePage theme={theme} />
+)}
 
-      {currentView === 'profile' && (
-        <ProfilePage />
-      )}
 
       <AddHabitModal
         isOpen={isAddModalOpen}

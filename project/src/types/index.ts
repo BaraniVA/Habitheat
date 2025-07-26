@@ -118,6 +118,6 @@ export interface Milestone {
 }
 
 export type Theme = 'light' | 'dark';
-export type View = 'dashboard' | 'habit-detail' | 'add-habit' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'social' | 'templates' | 'not-found';
+export type View = 'dashboard' | 'habit-detail' | 'add-habit' | 'insights' | 'achievements' | 'challenges' | 'profile'      |'mood' | 'social' | 'templates' | 'not-found';
 export type SortOption = 'name' | 'streak' | 'completion' | 'created' | 'priority' | 'time';
 export type FilterOption = 'all' | 'active' | 'struggling' | 'perfect' | 'priority-high' | 'quick' | 'long';

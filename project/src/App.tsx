@@ -9,7 +9,9 @@ import { ChallengesView } from './pages/ChallengesView';
 import { MoodTracker } from './pages/MoodTracker';
 import { HabitTemplatesView } from './pages/HabitTemplatesView';
 import { AchievementNotification } from './components/AchievementNotification';
-import NotFound from './pages/NotFound';
+
+import NotFound from './components/NotFound';
+import Landingpage  from './components/Landingpage';
 import { useHabits } from './hooks/useHabits';
 import { useTheme } from './hooks/useTheme';
 import { Habit, View, HabitTemplate } from './types';
@@ -39,7 +41,7 @@ function App() {
     dismissAchievement
   } = useHabits();
   
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [currentView, setCurrentView] = useState<View>('landingpage');
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -57,8 +59,11 @@ function App() {
         '/templates',
         '/profile'
       ];
-
-      if (path === '/' || path === '/dashboard') {
+      
+      if(path ==='/'){
+        setCurrentView('landingpage');
+      }
+      else if (path === '/dashboard') {
         setCurrentView('dashboard');
       } else if (path === '/insights') {
         setCurrentView('insights');
@@ -89,7 +94,8 @@ function App() {
 
   const navigateToView = (view: Exclude<View, 'not-found' | 'habit-detail' | 'add-habit' | 'social'>) => {
     const routes: Record<string, string> = {
-      dashboard: '/',
+      landingpage: '/',
+      dashboard:'/dashboard' ,
       insights: '/insights',
       achievements: '/achievements', 
       challenges: '/challenges',
@@ -105,11 +111,12 @@ function App() {
     }
   };
 
-  const getHeaderView = (view: View): 'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' | 'profile' => {
+
+  const getHeaderView = (view: View): 'landingpage'|'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates'| 'profile' => {
     if (['not-found', 'habit-detail', 'add-habit', 'social'].includes(view)) {
       return 'dashboard';
     }
-    return view as 'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' | 'profile';
+    return view as 'landingpage'|'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates'| 'profile' ;
   };
 
   const handleNavigateHome = () => {
@@ -222,15 +229,20 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Header 
+      {/* <Header 
         theme={theme} 
         currentView={getHeaderView(currentView)}
         onThemeToggle={toggleTheme}
         onViewChange={(view) => navigateToView(view)}
-      />
+      /> */}
       
       {currentView === 'not-found' && (
         <NotFound onNavigateHome={handleNavigateHome} />
+      )}
+
+
+      {currentView === 'landingpage' && (
+        <Landingpage />
       )}
 
       {currentView === 'dashboard' && (

@@ -118,33 +118,91 @@ Navigate to `http://localhost:5173` to start using Habit Heat!
 
 ## 📁 Project Structure
 
+### 🎯 Frontend Structure
+
 ```
-src/
-├── components/          # React components
-│   ├── Dashboard.tsx           # Main dashboard view
-│   ├── HabitCard.tsx          # Individual habit display
-│   ├── HabitDetail.tsx        # Detailed habit view
-│   ├── AddHabitModal.tsx      # Habit creation modal
-│   ├── InsightsView.tsx       # Analytics and insights
-│   ├── AchievementsView.tsx   # Achievement system
-│   ├── ChallengesView.tsx     # Challenge system
-│   ├── MoodTracker.tsx        # Mood logging
-│   ├── HabitTemplatesView.tsx # Pre-made templates
-│   └── ...
-├── hooks/              # Custom React hooks
-│   ├── useHabits.ts           # Habit management logic
-│   └── useTheme.ts            # Theme management
-├── types/              # TypeScript definitions
-│   └── index.ts               # All type definitions
-├── utils/              # Utility functions
-│   ├── storage.ts             # Local storage helpers
-│   ├── habitStats.ts          # Statistics calculations
-│   ├── achievements.ts        # Achievement logic
-│   ├── challenges.ts          # Challenge system
-│   ├── insights.ts            # Analytics generation
-│   └── ...
-└── App.tsx             # Main application component
+project/                 # Frontend React application
+├── src/
+│   ├── components/          # React components
+│   │   ├── Dashboard.tsx           # Main dashboard view
+│   │   ├── HabitCard.tsx          # Individual habit display
+│   │   ├── HabitDetail.tsx        # Detailed habit view
+│   │   ├── AddHabitModal.tsx      # Habit creation modal
+│   │   ├── InsightsView.tsx       # Analytics and insights
+│   │   ├── AchievementsView.tsx   # Achievement system
+│   │   ├── ChallengesView.tsx     # Challenge system
+│   │   ├── MoodTracker.tsx        # Mood logging
+│   │   ├── HabitTemplatesView.tsx # Pre-made templates
+│   │   ├── Login.tsx              # User authentication login
+│   │   ├── Signup.tsx             # User registration
+│   │   ├── Header.tsx             # Navigation header with logout
+│   │   ├── Footer.tsx             # Application footer
+│   │   ├── ProfilePage.tsx        # User profile management
+│   │   ├── Heatmap.tsx            # Progress visualization
+│   │   ├── MiniHeatmap.tsx        # Compact progress view
+│   │   ├── HabitStats.tsx         # Habit statistics display
+│   │   ├── QuickActions.tsx       # Quick habit completion
+│   │   ├── SelfCareTip.tsx        # Wellness tips
+│   │   ├── AchievementNotification.tsx # Achievement alerts
+│   │   ├── WidgetSettingsModal.tsx # Widget configuration
+│   │   └── widgets/               # Dashboard widgets
+│   │       ├── CurrentStreakWidget.tsx      # Streak display
+│   │       ├── DailyCompletionRateWidget.tsx # Daily progress
+│   │       └── TotalHabitsCompletedWidget.tsx # Total completion stats
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useHabits.ts           # Habit management logic
+│   │   └── useTheme.ts            # Theme management
+│   ├── pages/              # Page components
+│   │   ├── Dashboard.tsx          # Main dashboard page
+│   │   ├── InsightsView.tsx       # Analytics page
+│   │   ├── AchievementsView.tsx   # Achievements page
+│   │   ├── ChallengesView.tsx     # Challenges page
+│   │   ├── HabitTemplatesView.tsx # Templates page
+│   │   ├── MoodTracker.tsx        # Mood tracking page
+│   │   ├── ProfilePage.tsx        # User profile page
+│   │   └── NotFound.tsx           # 404 error page
+│   ├── types/              # TypeScript definitions
+│   │   └── index.ts               # All type definitions
+│   ├── utils/              # Utility functions
+│   │   ├── storage.ts             # Local storage helpers
+│   │   ├── habitStats.ts          # Statistics calculations
+│   │   ├── achievements.ts        # Achievement logic
+│   │   ├── challenges.ts          # Challenge system
+│   │   ├── insights.ts            # Analytics generation
+│   │   ├── habitTemplates.ts      # Pre-made habit templates
+│   │   ├── motivationalQuotes.ts  # Inspirational quotes
+│   │   └── dateUtils.ts           # Date manipulation utilities
+│   ├── App.tsx             # Main application component
+│   ├── main.tsx            # Application entry point
+│   └── index.css           # Global styles
+├── public/
+│   └── fevicon.png             # Application favicon
+├── .env.production             # Frontend prod environment variables
+└── index.html                  # HTML entry point
 ```
+
+### 🏗️ Backend Structure
+
+```
+server/
+├── src/
+│   ├── controllers/
+│   │   └── authController.js    # Authentication business logic
+│   ├── db/
+│   │   └── connect.js          # Database connection configuration
+│   ├── middleware/
+│   │   └── errorHandler.js     # Global error handling middleware
+│   ├── models/
+│   │   └── User.js             # User schema and model
+│   ├── routes/
+│   │   └── auth.js             # Authentication routes
+│   ├── app.js                  # Express app configuration
+│   └── index.js                # Server entry point
+├── .env.example                # Environment variables template
+├── .env.production             # Production environment variables
+└── README.md                   # Server documentation
+```
+
 
 ## 🎯 Key Components
 

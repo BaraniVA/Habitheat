@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Existing template scroll styles */
 div.template-scroll::-webkit-scrollbar {
   width: 8px;
 }
@@ -22,4 +23,137 @@ div.template-scroll::-webkit-scrollbar-track {
 div.template-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(100, 116, 139, 0.5) transparent;
+}
+
+/* Authentication form styles */
+.auth-container {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 25%, #ff6b35 50%, #d63031 75%, #74b9ff 100%);
+}
+
+.auth-form {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.auth-button {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ff6b35 100%);
+  transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+/* Notification animations */
+.notification-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.notification-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.3s ease;
+}
+
+.notification-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification-exit-active {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s ease;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  border: 3px solid rgba(255, 107, 107, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid #ff6b6b;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Auth form input focus states */
+.auth-input {
+  transition: all 0.2s ease;
+}
+
+.auth-input:focus {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+  outline: none;
+}
+
+/* Social login buttons */
+.social-button {
+  transition: all 0.2s ease;
+}
+
+.social-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode auth styles */
+@media (prefers-color-scheme: dark) {
+  .auth-form {
+    background: rgba(31, 41, 55, 0.95);
+  }
+  
+  .auth-input {
+    background-color: rgb(55, 65, 81);
+    border-color: rgb(75, 85, 99);
+    color: white;
+  }
+  
+  .auth-input:focus {
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+  }
+}
+
+/* Profile page specific styles */
+.profile-avatar {
+  transition: all 0.3s ease;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+}
+
+.profile-stat-card {
+  transition: all 0.2s ease;
+}
+
+.profile-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab transitions */
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-// import { motion, AnimatePresence} from 'framer-motion';
-import { Moon, Sun, Flame, BarChart3, Trophy, Settings, Target, Smile, BookOpen, Menu, X, ArrowLeft,User } from 'lucide-react';
+import { Moon, Sun, Flame, BarChart3, Trophy, Target, Smile, BookOpen, Menu, X, User, LogOut } from 'lucide-react';
 
 // Types
 type Theme = 'light' | 'dark';
@@ -12,9 +10,10 @@ interface HeaderProps {
   currentView: View;
   onThemeToggle: () => void;
   onViewChange: (view: View) => void;
+  onLogout?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggle, onViewChange }) => {
+export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggle, onViewChange, onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
@@ -65,9 +64,6 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
     onViewChange('dashboard');
     setIsMobileMenuOpen(false);
   };
-
-  //back button
-  const navigate = useNavigate();
 
   return (
     <>
@@ -150,6 +146,18 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
                 )}
               </button>
 
+              {/* Logout Button */}
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="hidden lg:flex p-2 sm:p-3 rounded-full bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors min-h-[44px] min-w-[44px] items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
+                </button>
+              )}
+
               {/* Mobile Hamburger Menu */}
               <button
                 ref={hamburgerRef}
@@ -224,6 +232,18 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
 
               {/* Footer */}
               <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                {onLogout && (
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      onLogout();
+                    }}
+                    className="w-full flex items-center gap-4 px-4 py-3 mb-4 rounded-xl text-left font-medium transition-all duration-200 min-h-[48px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <LogOut className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-base">Logout</span>
+                  </button>
+                )}
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                   Habit Heat - Track your daily habits
                 </p>

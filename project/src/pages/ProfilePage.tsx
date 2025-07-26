@@ -38,9 +38,7 @@ interface ProfilePageProps {
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
   const [activeTab, setActiveTab] = useState<'achievements' | 'mood'>('achievements');
-
-  // Mock data
-  const userProfile = {
+  const [userProfile, setUserProfile] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
     avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2",
@@ -48,12 +46,33 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
     longestStreak: 42,
     habitsCompleted: 218,
     joinDate: "January 2024"
-  };
- 
-  // tabtitle
-                useEffect(()=>{
-                  document.title='Habit Heat-My Profile'
-                },[])
+  });
+
+  // Load user data from localStorage after login
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          setUserProfile(prev => ({
+            ...prev,
+            name: userData.username || userData.name || "John Doe",
+            email: userData.email || "john.doe@example.com"
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  // Tab title
+  useEffect(() => {
+    document.title = "Habit Heat - My Profile";
+  }, []);
 
   const achievements: Achievement[] = [
     {

@@ -9,9 +9,9 @@ export interface Habit {
   targetDays?: number[]; // Days of week (0-6) when habit should be done
   reminderTime?: string; // HH:MM format
   category?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: "easy" | "medium" | "hard";
   isArchived?: boolean;
-  priority?: 'low' | 'medium' | 'high';
+  priority?: "low" | "medium" | "high";
   estimatedTime?: number; // minutes
   linkedHabits?: string[]; // IDs of habits that work well together
   motivationalQuote?: string;
@@ -26,7 +26,7 @@ export interface HabitStats {
   completionRate: number;
   weeklyProgress: number;
   monthlyProgress: number;
-  bestWeek: { week: string; completions: number };
+  bestWeek: {week: string; completions: number};
   consistency: number; // How consistent the habit is over time
   momentum: number; // Recent performance trend
   perfectWeeks: number;
@@ -48,7 +48,7 @@ export interface Achievement {
   icon: string;
   unlockedAt: string;
   habitId?: string;
-  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+  rarity?: "common" | "rare" | "epic" | "legendary";
   points?: number;
 }
 
@@ -57,7 +57,7 @@ export interface Challenge {
   title: string;
   description: string;
   icon: string;
-  type: 'streak' | 'completion' | 'consistency' | 'multi-habit';
+  type: "streak" | "completion" | "consistency" | "multi-habit";
   target: number;
   duration: number; // days
   startDate: string;
@@ -66,7 +66,7 @@ export interface Challenge {
   isActive: boolean;
   progress: number;
   reward: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
 }
 
 export interface HabitTemplate {
@@ -75,7 +75,7 @@ export interface HabitTemplate {
   emoji: string;
   color: string;
   category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   description: string;
   tips: string[];
   estimatedTime: number;
@@ -110,14 +110,77 @@ export interface HabitGroup {
 export interface Milestone {
   id: string;
   habitId: string;
-  type: 'streak' | 'total' | 'consistency';
+  type: "streak" | "total" | "consistency";
   value: number;
   achievedAt: string;
   title: string;
   description: string;
 }
 
-export type Theme = 'light' | 'dark';
-export type View = 'dashboard' | 'habit-detail' | 'add-habit' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'social' | 'templates' | 'not-found';
-export type SortOption = 'name' | 'streak' | 'completion' | 'created' | 'priority' | 'time';
-export type FilterOption = 'all' | 'active' | 'struggling' | 'perfect' | 'priority-high' | 'quick' | 'long';
+export type Theme = "light" | "dark";
+export type View =
+  | "dashboard"
+  | "habit-detail"
+  | "add-habit"
+  | "insights"
+  | "achievements"
+  | "challenges"
+  | "mood"
+  | "social"
+  | "templates"
+  | "not-found";
+export type SortOption =
+  | "name"
+  | "streak"
+  | "completion"
+  | "created"
+  | "priority"
+  | "time";
+export type FilterOption =
+  | "all"
+  | "active"
+  | "struggling"
+  | "perfect"
+  | "priority-high"
+  | "quick"
+  | "long";
+
+// Advanced Filter Types
+export type FilterType =
+  | "category"
+  | "priority"
+  | "difficulty"
+  | "completionRate"
+  | "streak"
+  | "estimatedTime"
+  | "targetDays";
+export type FilterOperator =
+  | "equals"
+  | "contains"
+  | "greaterThan"
+  | "lessThan"
+  | "greaterThanOrEqual"
+  | "lessThanOrEqual"
+  | "in";
+export type LogicOperator = "AND" | "OR";
+
+export interface FilterCondition {
+  id: string;
+  type: FilterType;
+  operator: FilterOperator;
+  value: any;
+  logicOperator?: LogicOperator;
+}
+
+export interface FilterPreset {
+  id: string;
+  name: string;
+  conditions: FilterCondition[];
+  createdAt: string;
+}
+
+export interface AdvancedFilterState {
+  conditions: FilterCondition[];
+  globalLogicOperator: LogicOperator;
+  presets: FilterPreset[];
+}

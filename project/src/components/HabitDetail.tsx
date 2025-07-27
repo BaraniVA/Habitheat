@@ -1,5 +1,6 @@
+// src/components/HabitDetail.tsx
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Trash2, StickyNote, Archive, ArchiveRestore, Save } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Trash2, StickyNote, Archive, ArchiveRestore, SkipForward } from 'lucide-react';
 import { Habit } from '../types';
 import { Heatmap } from './Heatmap';
 import { HabitStats } from './HabitStats';
@@ -14,6 +15,7 @@ interface HabitDetailProps {
   onDelete: () => void;
   onArchive: () => void;
   onAddNote: (date: string, note: string) => void;
+  onSkipToday: (habitId: string, reason: string) => void;
 }
 
 export const HabitDetail: React.FC<HabitDetailProps> = ({
@@ -23,17 +25,21 @@ export const HabitDetail: React.FC<HabitDetailProps> = ({
   onMarkToday,
   onDelete,
   onArchive,
-  onAddNote
+  onAddNote,
+  onSkipToday
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
   const [showNoteInput, setShowNoteInput] = useState(false);
+  const [showSkipModal, setShowSkipModal] = useState(false);
+  const [skipReason, setSkipReason] = useState('sick');
+  const [otherReason, setOtherReason] = useState('');
   
   const stats = calculateHabitStats(habit);
   
   const today = formatDate(new Date());
-  const todayCompleted = habit.logs[today] === true;
+  const todayLog = habit.logs[today];
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -56,10 +62,6 @@ export const HabitDetail: React.FC<HabitDetailProps> = ({
       onDelete();
     }
   };
-
-  const handleSaveTemplate = () => {
-    window.alert("Save this template by going back to dashboard..")
-  }
 
   const handleArchive = () => {
     if (window.confirm(`Are you sure you want to ${habit.isArchived ? 'unarchive' : 'archive'} this habit?`)) {
@@ -88,6 +90,15 @@ export const HabitDetail: React.FC<HabitDetailProps> = ({
     setSelectedDate(null);
     setNoteText('');
   };
+  
+  const handleSkipToday = () => {
+    let reason = skipReason;
+    if (skipReason === 'other') {
+      reason = otherReason;
+    }
+    onSkipToday(habit.id, reason);
+    setShowSkipModal(false);
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -102,13 +113,6 @@ export const HabitDetail: React.FC<HabitDetailProps> = ({
         </button>
         
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleSaveTemplate}
-            className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-            title="Save as template"
-          >
-            <Save className="w-4 h-4" />
-          </button>
           <button
             onClick={handleArchive}
             className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -175,18 +179,26 @@ export const HabitDetail: React.FC<HabitDetailProps> = ({
               </div>
             </div>
           </div>
-          
-          <button
-            onClick={onMarkToday}
-            disabled={todayCompleted}
-            className={`px-6 py-3 rounded-full font-medium transition-all ${
-              todayCompleted
-                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600 text-white shadow-sm hover:shadow'
-            }`}
-          >
-            {todayCompleted ? 'Completed Today!' : 'Mark Today Complete'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+                onClick={() => setShowSkipModal(true)}
+                disabled={todayLog?.status === 'skipped'}
+                className="px-6 py-3 rounded-full font-medium transition-all bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm hover:shadow disabled:bg-yellow-100 disabled:dark:bg-yellow-900 disabled:text-yellow-700 disabled:dark:text-yellow-300 disabled:cursor-not-allowed"
+            >
+                <SkipForward className="w-5 h-5" />
+            </button>
+            <button
+                onClick={onMarkToday}
+                disabled={todayLog?.status === 'completed'}
+                className={`px-6 py-3 rounded-full font-medium transition-all ${
+                todayLog?.status === 'completed'
+                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 cursor-not-allowed'
+                    : 'bg-blue-500 hover:bg-blue-600 text-white shadow-sm hover:shadow'
+                }`}
+            >
+                {todayLog?.status === 'completed' ? 'Completed Today!' : 'Mark Today Complete'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -267,6 +279,41 @@ export const HabitDetail: React.FC<HabitDetailProps> = ({
               </button>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Skip Today Modal */}
+      {showSkipModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Skip Today</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Why are you skipping today? This won't break your streak.</p>
+                <div className="space-y-2">
+                    <label className="flex items-center">
+                        <input type="radio" name="skipReason" value="sick" checked={skipReason === 'sick'} onChange={(e) => setSkipReason(e.target.value)} className="form-radio h-4 w-4 text-blue-600" />
+                        <span className="ml-2 text-gray-700 dark:text-gray-300">I'm sick</span>
+                    </label>
+                    <label className="flex items-center">
+                        <input type="radio" name="skipReason" value="traveling" checked={skipReason === 'traveling'} onChange={(e) => setSkipReason(e.target.value)} className="form-radio h-4 w-4 text-blue-600" />
+                        <span className="ml-2 text-gray-700 dark:text-gray-300">Traveling</span>
+                    </label>
+                    <label className="flex items-center">
+                        <input type="radio" name="skipReason" value="other" checked={skipReason === 'other'} onChange={(e) => setSkipReason(e.target.value)} className="form-radio h-4 w-4 text-blue-600" />
+                        <span className="ml-2 text-gray-700 dark:text-gray-300">Other</span>
+                    </label>
+                    {skipReason === 'other' && (
+                        <input type="text" value={otherReason} onChange={(e) => setOtherReason(e.target.value)} placeholder="Please specify" className="w-full mt-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    )}
+                </div>
+                <div className="flex gap-3 mt-4">
+                    <button onClick={() => setShowSkipModal(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button onClick={handleSkipToday} className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl transition-colors">
+                        Confirm Skip
+                    </button>
+                </div>
+            </div>
         </div>
       )}
 

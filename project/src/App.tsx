@@ -368,7 +368,7 @@ function App() {
       )}
 
       {currentView === 'achievements' && (
-        <AchievementsView achievements={achievements} />
+        <AchievementsView achievements={achievements} allHabits={habits} />
       )}
 
       {currentView === 'challenges' && (

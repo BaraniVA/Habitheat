@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trophy, Calendar, Target, Zap, Plus, CheckCircle } from 'lucide-react';
 import { Challenge, Habit } from '../types';
 import { generatePersonalizedChallenges, calculateChallengeProgress } from '../utils/challenges';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChallengesViewProps {
   habits: Habit[];
@@ -53,11 +54,16 @@ export const ChallengesView: React.FC<ChallengesViewProps> = ({
     const daysLeft = Math.max(0, Math.ceil((new Date(challenge.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
 
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border transition-all ${
-        isActive ? 'border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20' :
-        isCompleted ? 'border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20' :
-        'border-gray-100 dark:border-gray-700'
-      }`}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+        className={`bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border transition-all ${
+          isActive ? 'border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20' :
+          isCompleted ? 'border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20' :
+          'border-gray-100 dark:border-gray-700'
+        }`}
+      >
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className={`text-3xl p-3 rounded-xl ${
@@ -140,79 +146,184 @@ export const ChallengesView: React.FC<ChallengesViewProps> = ({
             Start Challenge
           </button>
         )}
-      </div>
+      </motion.div>
     );
   };
 
+  // Animation: Main container entrance
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">
-      <div>
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="max-w-6xl mx-auto px-4 py-6 space-y-8"
+    >
+      {/* Animation: Header entrance */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Challenges
         </h2>
         <p className="text-gray-500 dark:text-gray-400">
           Push yourself with fun challenges and earn rewards
         </p>
-      </div>
+      </motion.div>
 
       {/* Active Challenges */}
-      {activeChallenges.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-blue-500" />
-            Active Challenges ({activeChallenges.length})
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            {activeChallenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} isActive={true} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Animation: Active challenges section and cards staggered entrance */}
+      <AnimatePresence>
+        {activeChallenges.length > 0 && (
+          <motion.div
+            key="active"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-blue-500" />
+              Active Challenges ({activeChallenges.length})
+            </h3>
+            <motion.div
+              className="grid md:grid-cols-2 gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.09,
+                  },
+                },
+              }}
+            >
+              {activeChallenges.map((challenge, idx) => (
+                <motion.div
+                  key={challenge.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 + idx * 0.09, ease: 'easeOut' }}
+                >
+                  <ChallengeCard challenge={challenge} isActive={true} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Completed Challenges */}
-      {completedChallenges.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-green-500" />
-            Completed Challenges ({completedChallenges.length})
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            {completedChallenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} isCompleted={true} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Animation: Completed challenges section and cards staggered entrance */}
+      <AnimatePresence>
+        {completedChallenges.length > 0 && (
+          <motion.div
+            key="completed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-green-500" />
+              Completed Challenges ({completedChallenges.length})
+            </h3>
+            <motion.div
+              className="grid md:grid-cols-2 gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.09,
+                  },
+                },
+              }}
+            >
+              {completedChallenges.map((challenge, idx) => (
+                <motion.div
+                  key={challenge.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 + idx * 0.09, ease: 'easeOut' }}
+                >
+                  <ChallengeCard challenge={challenge} isCompleted={true} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Available Challenges */}
-      {upcomingChallenges.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-gray-500" />
-            Available Challenges ({upcomingChallenges.length})
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            {upcomingChallenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Animation: Available challenges section and cards staggered entrance */}
+      <AnimatePresence>
+        {upcomingChallenges.length > 0 && (
+          <motion.div
+            key="available"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Plus className="w-5 h-5 text-gray-500" />
+              Available Challenges ({upcomingChallenges.length})
+            </h3>
+            <motion.div
+              className="grid md:grid-cols-2 gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.09,
+                  },
+                },
+              }}
+            >
+              {upcomingChallenges.map((challenge, idx) => (
+                <motion.div
+                  key={challenge.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 + idx * 0.09, ease: 'easeOut' }}
+                >
+                  <ChallengeCard challenge={challenge} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {availableChallenges.length === 0 && (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Trophy className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No challenges available
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-            Create some habits first to unlock personalized challenges!
-          </p>
-        </div>
-      )}
-    </div>
+      {/* Animation: Empty state entrance */}
+      <AnimatePresence>
+        {availableChallenges.length === 0 && (
+          <motion.div
+            key="empty-state"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5 }}
+            className="text-center py-16"
+          >
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trophy className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No challenges available
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+              Create some habits first to unlock personalized challenges!
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Zap, Cloud } from 'lucide-react';
 import { Mood } from '../types';
 import { formatDate } from '../utils/dateUtils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MoodTrackerProps {
   moods: Record<string, Mood>;
@@ -93,8 +94,14 @@ export const MoodTracker: React.FC<MoodTrackerProps> = ({ moods, onAddMood }) =>
     </div>
   );
 
+  // Animation: Main container entrance
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="max-w-6xl mx-auto px-4 py-6"
+    >
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Mood Tracker
@@ -104,7 +111,13 @@ export const MoodTracker: React.FC<MoodTrackerProps> = ({ moods, onAddMood }) =>
         </p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
+      {/* Animation: Mood input card entrance */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-6"
+      >
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             How are you feeling today?
@@ -132,21 +145,27 @@ export const MoodTracker: React.FC<MoodTrackerProps> = ({ moods, onAddMood }) =>
           ) : (
             <div className="space-y-6">
               {/* Mood Selection */}
+              {/* Animation: Mood emoji button interactive animation */}
               <div>
                 <div className="flex justify-between items-center mb-4">
                   {moodEmojis.map((emoji, index) => (
-                    <div key={index}>
-                    <button onClick={() => setSelectedMood(index + 1)} className={`p-4 rounded-2xl transition-all flex flex-col items-center gap-2 ${selectedMood === index + 1? "bg-blue-100 dark:bg-blue-900 scale-110 shadow-lg": "hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105"}`}>
+                    <motion.button
+                      key={index}
+                      onClick={() => setSelectedMood(index + 1)}
+                      whileHover={{ scale: 1.15, boxShadow: '0 4px 16px rgba(80,120,255,0.10)' }}
+                      whileTap={{ scale: 0.92 }}
+                      transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      className={`p-4 rounded-2xl transition-all flex flex-col items-center gap-2 ${selectedMood === index + 1? "bg-blue-100 dark:bg-blue-900 scale-110 shadow-lg": "hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105"}`}
+                    >
                       <span className="text-3xl">{emoji}</span>
-                    </button>
-                    <div className="text-center mt-4">
-                    {selectedMood === index + 1 && (
-                        <span className="text-lg font-medium text-gray-900 dark:text-white">
-                          {moodLabels[index]}
-                        </span>
-                      )}
-                    </div>
-                    </div>
+                      <div className="text-center mt-4">
+                        {selectedMood === index + 1 && (
+                          <span className="text-lg font-medium text-gray-900 dark:text-white">
+                            {moodLabels[index]}
+                          </span>
+                        )}
+                      </div>
+                    </motion.button>
                   ))}
                 </div>
               </div>
@@ -181,56 +200,96 @@ export const MoodTracker: React.FC<MoodTrackerProps> = ({ moods, onAddMood }) =>
                 />
               </div>
 
-              <button
+              {/* Animation: Save button interactive animation */}
+              <motion.button
                 onClick={handleSubmit}
+                whileHover={{ scale: 1.04, boxShadow: '0 4px 16px rgba(80,120,255,0.10)' }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
               >
                 Save Today's Mood
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
-      {/* Recent Moods */}
-      {Object.keys(moods).length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Recent Moods
-          </h3>
-          <div className="grid gap-3">
-            {Object.entries(moods)
-              .sort(([a], [b]) => b.localeCompare(a))
-              .slice(0, 7)
-              .map(([date, mood]) => (
-                <div key={date} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{moodEmojis[mood.rating - 1]}</span>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {new Date(date).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {moodLabels[mood.rating - 1]}
+      {/* Animation: Recent moods section entrance and staggered card animation */}
+      <AnimatePresence>
+        {Object.keys(moods).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="mt-8"
+          >
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Recent Moods
+            </h3>
+            {/* Animation: Staggered grid card animation */}
+            <motion.div
+              className="grid gap-3"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.07,
+                  },
+                },
+              }}
+            >
+              {Object.entries(moods)
+                .sort(([a], [b]) => b.localeCompare(a))
+                .slice(0, 7)
+                .map(([date, mood], idx) => (
+                  // Animation: Recent mood card entrance and interactive animation
+                  <motion.div
+                    key={date}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.04, boxShadow: '0 4px 16px rgba(80,120,255,0.10)' }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{
+                      duration: 0.5,
+                      delay: 0.1 + idx * 0.07,
+                      ease: [0.25, 0.46, 0.45, 0.94],
+                      scale: { duration: 0.15 },
+                      boxShadow: { duration: 0.15 }
+                    }}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{moodEmojis[mood.rating - 1]}</span>
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {new Date(date).toLocaleDateString()}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {moodLabels[mood.rating - 1]}
+                          </div>
                         </div>
                       </div>
+                      <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+                        <div>Energy: {mood.energy}/5</div>
+                        <div>Stress: {mood.stress}/5</div>
+                      </div>
                     </div>
-                    <div className="text-right text-sm text-gray-500 dark:text-gray-400">
-                      <div>Energy: {mood.energy}/5</div>
-                      <div>Stress: {mood.stress}/5</div>
-                    </div>
-                  </div>
-                  {mood.note && (
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 italic">
-                      "{mood.note}"
-                    </p>
-                  )}
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
-    </div>
+                    {mood.note && (
+                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 italic">
+                        "{mood.note}"
+                      </p>
+                    )}
+                  </motion.div>
+                ))}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };

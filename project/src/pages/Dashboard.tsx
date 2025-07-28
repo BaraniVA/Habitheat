@@ -17,6 +17,7 @@ import DailyCompletionRateWidget from "../components/widgets/DailyCompletionRate
 import TotalHabitsCompletedWidget from "../components/widgets/TotalHabitsCompletedWidget";
 // NEW IMPORT FOR WIDGET SETTINGS MODAL
 import WidgetSettingsModal from "../components/WidgetSettingsModal"; // Adjust path if you put it in widgets/
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardProps {
   habits: Habit[];
@@ -232,10 +233,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setUseAdvancedFilter(false);
   };
 
+  // Animation: Main container entrance
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-      {/* NEW: Widgets Section with Settings Button */}
-      <div className="flex items-center justify-between mb-4">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="max-w-6xl mx-auto px-4 py-6 space-y-6"
+    >
+      {/* Animation: Header entrance */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="flex items-center justify-between mb-4"
+      >
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Dashboard Overview
         </h2>
@@ -246,26 +258,63 @@ export const Dashboard: React.FC<DashboardProps> = ({
         >
           <Settings className="w-5 h-5" />
         </button>
-      </div>
-      <div className="flex justify-center">
+      </motion.div>
+      {/* Animation: SelfCareTip entrance */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+        className="flex justify-center"
+      >
         <SelfCareTip />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      </motion.div>
+      {/* Animation: Widgets staggered entrance */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: 0.12,
+            },
+          },
+        }}
+      >
         {enabledWidgets.includes(WIDGET_IDS.CURRENT_STREAK) && (
-          <CurrentStreakWidget longestStreak={longestStreak} />
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
+            <CurrentStreakWidget longestStreak={longestStreak} />
+          </motion.div>
         )}
         {enabledWidgets.includes(WIDGET_IDS.DAILY_COMPLETION) && (
-          <DailyCompletionRateWidget
-            completedHabitsToday={completedHabitsToday}
-            totalHabitsToday={totalHabitsToday}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+          >
+            <DailyCompletionRateWidget
+              completedHabitsToday={completedHabitsToday}
+              totalHabitsToday={totalHabitsToday}
+            />
+          </motion.div>
         )}
         {enabledWidgets.includes(WIDGET_IDS.TOTAL_COMPLETED) && (
-          <TotalHabitsCompletedWidget
-            totalCompletedHabits={totalCompletedHabits}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+          >
+            <TotalHabitsCompletedWidget
+              totalCompletedHabits={totalCompletedHabits}
+            />
+          </motion.div>
         )}
-      </div>
+      </motion.div>
       {/* END NEW: Widgets Section */}
 
       {/* Widget Settings Modal */}
@@ -399,53 +448,85 @@ export const Dashboard: React.FC<DashboardProps> = ({
         />
       )}
 
-      {filteredAndSortedHabits.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-            {showArchived ? (
-              <Archive className="w-8 h-8 text-gray-400" />
-            ) : (
-              <Plus className="w-8 h-8 text-gray-400" />
+      <AnimatePresence mode="wait">
+        {filteredAndSortedHabits.length === 0 ? (
+          // Animation: Empty state entrance
+          <motion.div
+            key="empty-state"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5 }}
+            className="text-center py-16"
+          >
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              {showArchived ? (
+                <Archive className="w-8 h-8 text-gray-400" />
+              ) : (
+                <Plus className="w-8 h-8 text-gray-400" />
+              )}
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              {showArchived
+                ? "No archived habits"
+                : searchTerm
+                ? "No habits found"
+                : "No habits yet"}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
+              {showArchived
+                ? "Archived habits will appear here when you archive them."
+                : searchTerm
+                ? "Try adjusting your search or filters."
+                : "Create your first habit to start tracking your daily progress and building consistency."}
+            </p>
+            {!showArchived && !searchTerm && (
+              <motion.button
+                whileHover={{ scale: 1.04, boxShadow: '0 4px 16px rgba(80,120,255,0.10)' }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                onClick={onAddHabit}
+                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
+              >
+                Create Your First Habit
+              </motion.button>
             )}
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            {showArchived
-              ? "No archived habits"
-              : searchTerm
-              ? "No habits found"
-              : "No habits yet"}
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-            {showArchived
-              ? "Archived habits will appear here when you archive them."
-              : searchTerm
-              ? "Try adjusting your search or filters."
-              : "Create your first habit to start tracking your daily progress and building consistency."}
-          </p>
-          {!showArchived && !searchTerm && (
-            <button
-              onClick={onAddHabit}
-              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
-            >
-              Create Your First Habit
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2">
-          {filteredAndSortedHabits.map((habit) => (
-            <HabitCard
-              key={habit.id}
-              habit={habit}
-              onClick={() => onHabitClick(habit)}
-              onMarkToday={() => onMarkToday(habit.id)}
-              onSaveTemplate={() => onSaveTemplate(habit)}
-              onArchive={() => onArchiveHabit(habit.id)}
-              showArchiveButton={!showArchived}
-            />
-          ))}
-        </div>
-      )}
+          </motion.div>
+        ) : (
+          // Animation: Habit cards staggered entrance
+          <motion.div
+            className="grid gap-6 md:grid-cols-2"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.09,
+                },
+              },
+            }}
+          >
+            {filteredAndSortedHabits.map((habit, idx) => (
+              <motion.div
+                key={habit.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 + idx * 0.09, ease: 'easeOut' }}
+              >
+                <HabitCard
+                  habit={habit}
+                  onClick={() => onHabitClick(habit)}
+                  onMarkToday={() => onMarkToday(habit.id)}
+                  onSaveTemplate={() => onSaveTemplate(habit)}
+                  onArchive={() => onArchiveHabit(habit.id)}
+                  showArchiveButton={!showArchived}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Advanced Filter Modal */}
       <AdvancedFilterModal
@@ -455,6 +536,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onApplyFilter={handleApplyAdvancedFilter}
         onResetFilter={handleResetAdvancedFilter}
       />
-    </div>
+    </motion.div>
   );
 };

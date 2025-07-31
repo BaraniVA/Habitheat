@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, Flame, BarChart3, Trophy, Target, Smile, BookOpen, Menu, X, User, LogOut } from 'lucide-react';
+import { Moon, Sun, Flame, BarChart3, Trophy, Target, Smile, BookOpen, Menu, X, User, LogOut ,MessageCircle } from 'lucide-react';
 
 // Types
 type Theme = 'light' | 'dark';
-type View = 'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' | 'profile';
+type View = 'dashboard' | 'insights' | 'achievements' | 'blogs'| 'challenges' | 'mood' | 'templates' | 'profile';
 
 interface HeaderProps {
   theme: Theme;
@@ -22,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
     { view: 'dashboard' as View, icon: Flame, label: 'Habits' },
     { view: 'insights' as View, icon: BarChart3, label: 'Insights' },
     { view: 'achievements' as View, icon: Trophy, label: 'Achievements' },
+    { view: 'blogs' as View, icon: MessageCircle, label: 'Blogs'},
     { view: 'challenges' as View, icon: Target, label: 'Challenges' },
     { view: 'mood' as View, icon: Smile, label: 'Mood' },
     { view: 'templates' as View, icon: BookOpen, label: 'Templates' },
@@ -55,6 +56,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, currentView, onThemeToggl
 
   // Handle view change and close mobile menu
   const handleViewChange = (view: View) => {
+     console.log("Changing to:", view); 
     onViewChange(view);
     setIsMobileMenuOpen(false);
   };

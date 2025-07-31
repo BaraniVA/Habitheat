@@ -121,7 +121,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup, onLoginSuccess }) => {
       });
 
       // Store token and user data
-      localStorage.setItem('authToken', response.data.token);
+      // console.log("Login response:", response.data);
+      localStorage.setItem("token", response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
       setNotification({ type: 'success', message: response.data.message });

@@ -20,6 +20,7 @@ import { Habit, View, HabitTemplate } from './types';
 import ProfilePage from './pages/ProfilePage';
 import { Footer } from './components/Footer';
 import { loadCustomTemplates, saveCustomTemplates } from './utils/storage';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -316,6 +317,7 @@ function App() {
   if (!isAuthenticated) {
     return (
       <>
+        <Toaster />
         {authView === 'login' ? (
           <Login 
             onSwitchToSignup={() => setAuthView('signup')}
@@ -332,6 +334,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <Toaster />
       <Header 
         theme={theme} 
         currentView={getHeaderView(currentView)}
@@ -387,7 +390,7 @@ function App() {
       )}
 
       {currentView === 'achievements' && (
-        <AchievementsView achievements={achievements} />
+        <AchievementsView achievements={achievements} allHabits={habits} />
       )}
 
       {currentView === 'challenges' && (

@@ -1,18 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { 
+import {
   // User, 
-  Edit3, 
-  Camera, 
-  Flame, 
-  Trophy, 
-  CheckCircle, 
-  Star, 
-  Award, 
+  Edit3,
+  Camera,
+  Flame,
+  Trophy,
+  CheckCircle,
+  Star,
+  Award,
   Calendar,
   Smile,
   // Target,
-  Zap
+  Zap,
+  Loader,
+  CrossIcon,
+  LucideFolderClosed,
+  Cross,
+  ArrowLeft,
+  Loader2
 } from 'lucide-react';
+import { div } from 'framer-motion/client';
+import toast from 'react-hot-toast';
+import TimeInput from '../components/TimeInput';
+import axios from 'axios';
 
 type Theme = 'light' | 'dark';
 
@@ -22,6 +32,27 @@ interface Achievement {
   description: string;
   badge: string;
   completedDate: string;
+}
+
+interface AuthorizedUser {
+  username: string;
+  email: string;
+  password: string;
+  profilePic?: string;
+  startTime?: string;
+  reminderTime?: string;
+  startOfWeek?: string;
+  age?: number;
+}
+
+interface editProfile {
+  username: string;
+  password?: string;
+  currentPassword?: string;
+  startTime?: string;
+  reminderTime?: string;
+  startOfWeek?: string;
+  age?: number;
 }
 
 interface MoodEntry {
@@ -47,6 +78,48 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
     habitsCompleted: 218,
     joinDate: "January 2024"
   });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState<boolean>(false);
+  const [selectedImg, setSelectedImg] = useState<string | null>(null);
+  const [authUser, setAuthUser] = useState<AuthorizedUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
+  const [currentPassword, setCurrentPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [changePassword, setChangePassword] = useState<boolean>(false);
+  const [wakeUpTime, setWakeUpTime] = useState<string>("07:00");
+  const [reminderTime, setReminderTime] = useState<string>("07:00");
+  const [selectedDay, setSelectedDay] = useState<string>("Monday");
+  const [age, setAge] = useState<number>(20);
+  const [username, setUsername] = useState<string>(authUser ? authUser.username : "");
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    fetch("http://localhost:5000/api/auth/me", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => setAuthUser(data))
+      .catch(() => {
+        localStorage.removeItem("authToken");
+        setAuthUser(null);
+      }).finally(() => setLoading(false));
+  }, []);
+
+
 
   // Load user data from localStorage after login
   useEffect(() => {
@@ -62,7 +135,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
           }));
         }
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('Error loading user data:', (error as Error).message);
       }
     };
 
@@ -136,87 +209,232 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
     }
   ];
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    toast.success("Image uploaded! Changes will appear soon🎉", {
+      style: {
+        minWidth: "410px",
+        whiteSpace: "nowrap",
+      },
+    });
+    setIsUpdatingProfile(true);
+
+    const previewUrl = URL.createObjectURL(file);
+    setAuthUser((prev) => ({
+      ...prev!,
+      profilePic: previewUrl,
+    }));
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = async () => {
+      if (typeof reader.result === "string") {
+        setSelectedImg(reader.result);
+
+        try {
+          const response = await fetch("http://localhost:5000/api/auth/upload-pic", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+            body: JSON.stringify({
+              image: reader.result,
+              email: authUser?.email,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to update profile picture");
+          }
+
+          const data = await response.json();
+
+          setAuthUser(data);
+        } catch (error) {
+          console.error("Error updating profile picture:", (error as Error).message);
+        } finally {
+          setIsUpdatingProfile(false);
+        }
+      }
+    };
+  };
+
+  const handleSubmit = async (e:React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSaving(true);
+    let formData: editProfile;
+    if (changePassword) {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        toast.error("Please fill the password field!");
+        setIsSaving(false);
+        return;
+      }
+      if (newPassword != confirmPassword) {
+        toast.error("Password did not match!");
+        setIsSaving(false);
+        return;
+      }
+      if(newPassword.length < 6) {
+        toast.error("Password must be at least of length 6!");
+        setIsSaving(false);
+        return;
+      }
+      formData = {
+        username: username,
+        password: newPassword,
+        currentPassword: currentPassword,
+        startTime: wakeUpTime,
+        reminderTime: reminderTime,
+        startOfWeek: selectedDay,
+        age: age
+      }
+    } else {
+      formData = {
+        username: username,
+        startTime: wakeUpTime,
+        reminderTime: reminderTime,
+        startOfWeek: selectedDay,
+        age: age
+      }
+    }
+    try {
+      const response = await axios.put(
+        "http://localhost:5000/api/auth/edit-profile",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      toast.success(response.data.message || "Profile updated!");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-8 transition-colors">
       <div className="max-w-7xl mx-auto">
-        {/* Header with fade-in animation */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 animate-slide-down">User Profile</h1>
-          <p className="text-gray-600 dark:text-gray-300 animate-slide-down-delayed">Manage your profile and track your progress</p>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">User Profile</h1>
+          <p className="text-gray-600 dark:text-gray-300">Manage your profile and track your progress</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Profile Info with slide-in animation */}
-          <div className="lg:col-span-1 animate-slide-in-left">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 sticky top-8 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 ease-in-out">
-              {/* Avatar Section with pulse animation on hover */}
+        <div className={isEditingProfile ? "grid grid-cols-1 md:grid-cols-[35%_65%] gap-4" : "grid grid-cols-1 lg:grid-cols-3 gap-8"}>
+          {/* Left Column - Profile Info */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 sticky top-8 border border-gray-200 dark:border-gray-700">
+              {/* Avatar Section */}
               <div className="text-center mb-6">
-                <div className="relative inline-block group">
-                  <img
-                    src={userProfile.avatar}
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-blue-100 dark:border-blue-900 shadow-lg transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-xl"
-                  />
-                  <button className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 ease-in-out hover:scale-110 hover:rotate-12">
-                    <Camera size={16} />
-                  </button>
+                <div className="relative inline-block">
+                  {loading ? (
+                    <div className='flex flex-col w-full h-full justify-center items-center'>
+                      <Loader size={25} className='animate-spin' />
+                    </div>
+                  ) : (
+                    <img
+                      src={selectedImg || authUser?.profilePic || userProfile.avatar}
+                      alt="Profile"
+                    />
+                  )}
+                  <label
+                    htmlFor="avatar-upload"
+                    className={`
+                      absolute bottom-0 right-0 
+                      bg-base-content hover:scale-105
+                      p-2 rounded-full cursor-pointer 
+                      transition-all duration-200
+                      ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
+                    `}
+                  >
+                    {!loading && <Camera className="w-5 h-5 text-base-200" aria-hidden={loading} />}
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={isUpdatingProfile}
+                    />
+                  </label>
                 </div>
-                <button className="mt-4 px-4 py-2 text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 ease-in-out hover:scale-105 flex items-center gap-2 mx-auto">
+
+                <button className="mt-4 px-4 py-2 text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-2 mx-auto">
                   <Camera size={16} />
-                  Change Picture
+                  <label htmlFor="avatar-uploads" className='cursor-pointer'>
+                    Change Picture
+                    <input
+                      type="file"
+                      id="avatar-uploads"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={isUpdatingProfile}
+                    />
+                  </label>
                 </button>
               </div>
 
-              {/* User Info with staggered animation */}
+              {/* User Info */}
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 animate-fade-in-up">"{userProfile.name}"</h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-1 animate-fade-in-up-delayed">{userProfile.email}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 animate-fade-in-up-delayed-2">Member since {userProfile.joinDate}</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{authUser?.username}</h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-1">{authUser?.email}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Member since {userProfile.joinDate}</p>
               </div>
 
-              {/* Edit Profile Button with bounce animation on hover */}
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 font-medium animate-fade-in-up-delayed-3">
-                <Edit3 size={18} className="transition-transform duration-200 ease-in-out group-hover:rotate-12" />
+              {/* Edit Profile Button */}
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium" onClick={() => setIsEditingProfile(true)}>
+                <Edit3 size={18} />
                 Edit Profile
               </button>
             </div>
           </div>
 
-          {/* Right Column - Stats & Activity with slide-in animation */}
-          <div className="lg:col-span-2 space-y-8 animate-slide-in-right">
-            {/* Statistics Section with stagger animation */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 ease-in-out">
-              <div className="flex items-center gap-2 mb-6 animate-fade-in-up">
-                <Star className="text-blue-600 dark:text-blue-400 animate-pulse" size={24} />
+          {/* Right Column - Stats & Activity */}
+          {!isEditingProfile ? (<div className="lg:col-span-2 space-y-8">
+            {/* Statistics Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 mb-6">
+                <Star className="text-blue-600 dark:text-blue-400" size={24} />
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Statistics</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Current Streak with scale animation on hover */}
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-6 rounded-xl border border-orange-200 dark:border-orange-700/50 hover:scale-105 transition-all duration-300 ease-in-out animate-fade-in-up-delayed">
+                {/* Current Streak */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-6 rounded-xl border border-orange-200 dark:border-orange-700/50">
                   <div className="flex items-center justify-between mb-2">
-                    <Flame className="text-orange-500 dark:text-orange-400 animate-bounce" size={24} />
-                    <span className="text-2xl font-bold text-orange-600 dark:text-orange-400 animate-count-up">{userProfile.currentStreak}</span>
+                    <Flame className="text-orange-500 dark:text-orange-400" size={24} />
+                    <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{userProfile.currentStreak}</span>
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white">Current Streak</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Days in a row</p>
                 </div>
 
-                {/* Longest Streak with scale animation on hover */}
-                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700/50 hover:scale-105 transition-all duration-300 ease-in-out animate-fade-in-up-delayed-2">
+                {/* Longest Streak */}
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700/50">
                   <div className="flex items-center justify-between mb-2">
-                    <Trophy className="text-yellow-500 dark:text-yellow-400 animate-pulse" size={24} />
-                    <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 animate-count-up">{userProfile.longestStreak}</span>
+                    <Trophy className="text-yellow-500 dark:text-yellow-400" size={24} />
+                    <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{userProfile.longestStreak}</span>
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white">Longest Streak</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Personal best</p>
                 </div>
 
-                {/* Habits Completed with scale animation on hover */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-xl border border-green-200 dark:border-green-700/50 hover:scale-105 transition-all duration-300 ease-in-out animate-fade-in-up-delayed-3">
+                {/* Habits Completed */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-xl border border-green-200 dark:border-green-700/50">
                   <div className="flex items-center justify-between mb-2">
-                    <CheckCircle className="text-green-500 dark:text-green-400 animate-pulse" size={24} />
-                    <span className="text-2xl font-bold text-green-600 dark:text-green-400 animate-count-up">{userProfile.habitsCompleted}</span>
+                    <CheckCircle className="text-green-500 dark:text-green-400" size={24} />
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">{userProfile.habitsCompleted}</span>
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white">Habits Completed</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Total count</p>
@@ -224,50 +442,47 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
               </div>
             </div>
 
-            {/* Activity Section with fade-in animation */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 ease-in-out animate-fade-in-up-delayed-4">
-              <div className="flex items-center gap-2 mb-6 animate-fade-in-up">
-                <Zap className="text-blue-600 dark:text-blue-400 animate-pulse" size={24} />
+            {/* Activity Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 mb-6">
+                <Zap className="text-blue-600 dark:text-blue-400" size={24} />
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Activity</h3>
               </div>
 
-              {/* Tabs with smooth transition animation */}
+              {/* Tabs */}
               <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
                 <button
                   onClick={() => setActiveTab('achievements')}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:scale-105 ${
-                    activeTab === 'achievements'
-                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm animate-tab-active'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-                  }`}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeTab === 'achievements'
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                    }`}
                 >
-                  <Award size={16} className="transition-transform duration-200 ease-in-out group-hover:rotate-12" />
+                  <Award size={16} />
                   Achievements
                 </button>
                 <button
                   onClick={() => setActiveTab('mood')}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:scale-105 ${
-                    activeTab === 'mood'
-                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm animate-tab-active'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-                  }`}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeTab === 'mood'
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                    }`}
                 >
-                  <Smile size={16} className="transition-transform duration-200 ease-in-out group-hover:rotate-12" />
+                  <Smile size={16} />
                   Mood History
                 </button>
               </div>
 
-              {/* Tab Content with slide transition animation */}
-              <div className="min-h-[300px] relative">
+              {/* Tab Content */}
+              <div className="min-h-[300px]">
                 {activeTab === 'achievements' && (
-                  <div className="space-y-4 animate-slide-in-up">
-                    {achievements.map((achievement, index) => (
+                  <div className="space-y-4">
+                    {achievements.map((achievement) => (
                       <div
                         key={achievement.id}
-                        className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg animate-fade-in-up"
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       >
-                        <div className="text-2xl animate-bounce">{achievement.badge}</div>
+                        <div className="text-2xl">{achievement.badge}</div>
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
                             {achievement.title}
@@ -286,10 +501,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
                 )}
 
                 {activeTab === 'mood' && (
-                  <div className="space-y-4 animate-slide-in-up">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-700/50 mb-6 animate-fade-in-up">
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-700/50 mb-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-3xl animate-bounce">{moodHistory[0]?.emoji}</span>
+                        <span className="text-3xl">{moodHistory[0]?.emoji}</span>
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">
                             Last Mood: {moodHistory[0]?.mood}
@@ -299,13 +514,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
                       </div>
                     </div>
 
-                    {moodHistory.map((mood, index) => (
+                    {moodHistory.map((mood) => (
                       <div
                         key={mood.id}
-                        className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg animate-fade-in-up"
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       >
-                        <div className="text-2xl animate-bounce">{mood.emoji}</div>
+                        <div className="text-2xl">{mood.emoji}</div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-gray-900 dark:text-white">{mood.mood}</h4>
@@ -321,149 +535,131 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
                 )}
               </div>
             </div>
-          </div>
+          </div>) : (<div className='flex flex-col'>
+            <div className='flex sm:gap-20 gap-10'>
+              <ArrowLeft onClick={() => setIsEditingProfile(false)} className='dark:text-white ml-10 cursor-pointer'/>
+              <h1 className='dark:text-white text-2xl font-bold lg:ml-36 md:ml-8 sm:ml-11 text-center'>Change your details</h1>
+            </div>
+            <form className="m-8" onSubmit={handleSubmit}>
+              <label className='dark:text-white m-2'>Username:</label>
+              <input
+                type="text"
+                value={username}
+                className="w-full ml-2 mb-5 border border-gray-600 focus:border-gray-800 focus:outline-none px-4 py-2 rounded"
+                placeholder={authUser?.username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <label className='dark:text-white m-2'>Email:</label>
+              <input
+                type="email"
+                value={authUser?.email}
+                disabled
+                className="w-full ml-2 border dark:text-white border-gray-600 focus:border-gray-800 focus:outline-none px-4 py-2 rounded"
+              />
+              <div className="flex items-center justify-between mt-5 ml-2 mb-3">
+                <label className="flex items-center cursor-pointer">
+                  {/* Toggle Label */}
+                  <span className="mr-3 text-sm dark:text-white text-gray-700">Change Password?</span>
+
+                  {/* Toggle Switch */}
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={changePassword}
+                      onChange={() => setChangePassword(!changePassword)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-500 transition-colors duration-300" />
+                    <div
+                      className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"
+                    />
+                  </div>
+                </label>
+              </div>
+
+              {/* Password fields - only show if toggle is ON */}
+              {changePassword && (
+                <div className="space-y-4">
+                  <input
+                    type="password"
+                    placeholder="Current Password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full ml-2 border px-4 py-2 rounded"
+                  />
+                  <input
+                    type="password"
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full ml-2 border px-4 py-2 rounded"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm New Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full ml-2 border px-4 py-2 rounded"
+                  />
+                </div>
+              )}
+
+              <h1 className='dark:text-white ml-2 text-xl my-4 font-bold'>Profile Settings</h1>
+              <TimeInput
+                label="What time do you usually wake up?"
+                name="wakeUpTime"
+                value={wakeUpTime}
+                onChange={(e) => setWakeUpTime(e.target.value)}
+              />
+              <TimeInput
+                label="What time do you prefer reminders?"
+                name="reminderTime"
+                value={reminderTime}
+                onChange={(e) => setReminderTime(e.target.value)}
+              />
+              <label htmlFor="week" className="text-sm ml-2 text-gray-700 dark:text-white mb-1 block">
+                When does your week start?
+              </label>
+              <select
+                id="week"
+                name="week"
+                value={selectedDay}
+                onChange={(e) => setSelectedDay(e.target.value)}
+                className="block w-full px-4 py-2 ml-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Sunday">Sunday</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+              </select>
+              <label htmlFor="week" className="text-sm ml-2 text-gray-700 dark:text-white mb-1 mt-2 block">
+                What is your age?
+              </label>
+              <input
+                type="number"
+                min={10}
+                max={100}
+                placeholder="20"
+                value={age}
+                onChange={(e) => setAge(Number(e.target.value))}
+                className="w-full ml-2 border px-4 py-2 rounded"
+              />
+
+              {/* Save Changes button */}
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="w-full flex justify-center ml-2 mt-5 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+              >
+                {isSaving ? <Loader size={15} /> : "Save Changes"}
+              </button>
+            </form>
+          </div>)}
         </div>
       </div>
-
-      {/* Custom CSS for animations */}
-      <style>{`
-        /* Fade-in animation for page load */
-        .animate-fade-in {
-          animation: fadeIn 0.8s ease-in-out;
-        }
-
-        /* Slide-down animation for headers */
-        .animate-slide-down {
-          animation: slideDown 0.6s ease-out;
-        }
-
-        .animate-slide-down-delayed {
-          animation: slideDown 0.6s ease-out 0.2s both;
-        }
-
-        /* Slide-in animations for columns */
-        .animate-slide-in-left {
-          animation: slideInLeft 0.8s ease-out;
-        }
-
-        .animate-slide-in-right {
-          animation: slideInRight 0.8s ease-out 0.2s both;
-        }
-
-        /* Fade-in-up animations with delays */
-        .animate-fade-in-up {
-          animation: fadeInUp 0.6s ease-out;
-        }
-
-        .animate-fade-in-up-delayed {
-          animation: fadeInUp 0.6s ease-out 0.1s both;
-        }
-
-        .animate-fade-in-up-delayed-2 {
-          animation: fadeInUp 0.6s ease-out 0.2s both;
-        }
-
-        .animate-fade-in-up-delayed-3 {
-          animation: fadeInUp 0.6s ease-out 0.3s both;
-        }
-
-        .animate-fade-in-up-delayed-4 {
-          animation: fadeInUp 0.6s ease-out 0.4s both;
-        }
-
-        /* Slide-in-up animation for tab content */
-        .animate-slide-in-up {
-          animation: slideInUp 0.5s ease-out;
-        }
-
-        /* Tab active animation */
-        .animate-tab-active {
-          animation: tabActive 0.3s ease-out;
-        }
-
-        /* Count-up animation for statistics */
-        .animate-count-up {
-          animation: countUp 1s ease-out;
-        }
-
-        /* Keyframe definitions */
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideDown {
-          from { 
-            opacity: 0; 
-            transform: translateY(-20px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-
-        @keyframes slideInLeft {
-          from { 
-            opacity: 0; 
-            transform: translateX(-50px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-
-        @keyframes slideInRight {
-          from { 
-            opacity: 0; 
-            transform: translateX(50px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-
-        @keyframes fadeInUp {
-          from { 
-            opacity: 0; 
-            transform: translateY(30px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-
-        @keyframes slideInUp {
-          from { 
-            opacity: 0; 
-            transform: translateY(20px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-
-        @keyframes tabActive {
-          0% { transform: scale(0.95); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-
-        @keyframes countUp {
-          from { 
-            opacity: 0; 
-            transform: scale(0.5); 
-          }
-          to { 
-            opacity: 1; 
-            transform: scale(1); 
-          }
-        }
-      `}</style>
     </div>
   );
 };

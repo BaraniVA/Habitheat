@@ -163,7 +163,7 @@ export const Header: React.FC<HeaderProps> = ({
                         : 'text-gray-600 dark:text-gray-400'
                     }`} />
                   </span>
-                  <span className="hidden md:inline whitespace-nowrap transition-colors duration-300">{label}</span>
+                  <span className="hidden md:inline dark:text-white whitespace-nowrap transition-colors duration-300">{label}</span>
                   {/* Active indicator bar */}
                   <div className={`w-full h-1 rounded-full transition-all duration-300 ease-in-out ${
                     currentView === view

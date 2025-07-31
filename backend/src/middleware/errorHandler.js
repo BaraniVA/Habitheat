@@ -1,9 +1,28 @@
-const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+import multer from 'multer';
+
+export const errorHandler = (error, req, res, next) => {
+  console.error('Error:', error);
+
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'File too large. Maximum size is 5MB.'
+      });
+    }
+  }
+
   res.status(500).json({
-    message: "Internal Server Error",
-    error: err.message,
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
   });
 };
 
-export default errorHandler;
+export const notFoundHandler = (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Endpoint not found'
+  });
+};
+

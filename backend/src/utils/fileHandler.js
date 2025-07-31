@@ -3,15 +3,14 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// Use /tmp/uploads for Vercel compatibility
-const uploadDir = '/tmp/uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
 export const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
+      const uploadDir = '/tmp/uploads';
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
       cb(null, uploadDir);
     },
     filename: function (req, file, cb) {

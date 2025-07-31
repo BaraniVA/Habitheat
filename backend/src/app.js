@@ -32,9 +32,7 @@ app.use('/api/habits/bulk', bulkRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Create necessary directories (do not create 'uploads' on Vercel, handled in fileHandler.js)
-if (!fs.existsSync('exports')) {
-  fs.mkdirSync('exports');
-}
+// Note: In serverless environments like Vercel, we use /tmp directory for temporary files
+// No need to create directories as /tmp is available by default
 
 export default app;

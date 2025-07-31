@@ -5,6 +5,7 @@ import path from 'path';
 import csv from 'csv-parser';
 import { createObjectCsvWriter } from 'csv-writer';
 import mongoose from 'mongoose';
+import { Readable } from 'stream';
 
 // POST /api/habits/bulk/import
 export const importHabits = async (req, res) => {
@@ -16,13 +17,13 @@ export const importHabits = async (req, res) => {
       });
     }
 
-    const filePath = req.file.path;
+    const fileBuffer = req.file.buffer;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
 
     if (fileExtension === '.csv') {
-      await handleCSVImport(filePath, res);
+      await handleCSVImport(fileBuffer, res);
     } else if (fileExtension === '.json') {
-      await handleJSONImport(filePath, res);
+      await handleJSONImport(fileBuffer, res);
     } else {
       return res.status(400).json({
         success: false,
@@ -30,14 +31,6 @@ export const importHabits = async (req, res) => {
       });
     }
   } catch (error) {
-    if (req.file?.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (cleanupError) {
-        console.error('Error cleaning up file:', cleanupError);
-      }
-    }
-
     console.error('Error in importHabits:', error);
     res.status(500).json({
       success: false,
@@ -47,12 +40,17 @@ export const importHabits = async (req, res) => {
   }
 };
 
-export const handleCSVImport = async (filePath, res) => {
+export const handleCSVImport = async (fileBuffer, res) => {
   const importedHabits = [];
   const errors = [];
   let rowIndex = 0;
 
-  fs.createReadStream(filePath)
+  // Create a readable stream from buffer
+  const bufferStream = new Readable();
+  bufferStream.push(fileBuffer);
+  bufferStream.push(null);
+
+  bufferStream
     .pipe(csv())
     .on('data', (row) => {
       rowIndex++;
@@ -68,8 +66,6 @@ export const handleCSVImport = async (filePath, res) => {
       }
     })
     .on('end', async () => {
-      fs.unlinkSync(filePath);
-
       if (errors.length > 0) {
         return res.status(400).json({
           success: false,
@@ -102,7 +98,6 @@ export const handleCSVImport = async (filePath, res) => {
       }
     })
     .on('error', (error) => {
-      fs.unlinkSync(filePath);
       res.status(400).json({
         success: false,
         message: 'Failed to parse CSV file',
@@ -111,68 +106,57 @@ export const handleCSVImport = async (filePath, res) => {
     });
 };
 
-export const handleJSONImport = async (filePath, res) => {
-  fs.readFile(filePath, 'utf8', async (err, data) => {
-    fs.unlinkSync(filePath);
+export const handleJSONImport = async (fileBuffer, res) => {
+  try {
+    const data = fileBuffer.toString('utf8');
+    const jsonData = JSON.parse(data);
+    const habitsArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+    const importedHabits = [];
+    const errors = [];
 
-    if (err) {
+    habitsArray.forEach((habitData, index) => {
+      try {
+        const habit = validateImportedHabit(habitData, index + 1);
+        if (habit.errors.length > 0) {
+          errors.push(...habit.errors);
+          return;
+        }
+        importedHabits.push(habit.data);
+      } catch (error) {
+        errors.push(`Item ${index + 1}: ${error.message}`);
+      }
+    });
+
+    if (errors.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Failed to read JSON file',
-        error: err.message
+        message: 'Import failed with validation errors',
+        errors
       });
     }
 
-    try {
-      const jsonData = JSON.parse(data);
-      const habitsArray = Array.isArray(jsonData) ? jsonData : [jsonData];
-      const importedHabits = [];
-      const errors = [];
+    const createdHabits = await Habit.insertMany(importedHabits, {
+      ordered: false,
+      validateBeforeSave: true
+    });
 
-      habitsArray.forEach((habitData, index) => {
-        try {
-          const habit = validateImportedHabit(habitData, index + 1);
-          if (habit.errors.length > 0) {
-            errors.push(...habit.errors);
-            return;
-          }
-          importedHabits.push(habit.data);
-        } catch (error) {
-          errors.push(`Item ${index + 1}: ${error.message}`);
-        }
-      });
-
-      if (errors.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Import failed with validation errors',
-          errors
-        });
+    res.status(200).json({
+      success: true,
+      message: `Successfully imported ${createdHabits.length} habits`,
+      data: {
+        imported: createdHabits.length,
+        habits: createdHabits
       }
-
-      const createdHabits = await Habit.insertMany(importedHabits, {
-        ordered: false,
-        validateBeforeSave: true
-      });
-
-      res.status(200).json({
-        success: true,
-        message: `Successfully imported ${createdHabits.length} habits`,
-        data: {
-          imported: createdHabits.length,
-          habits: createdHabits
-        }
-      });
-    } catch (error) {
-      console.error('Error in JSON import:', error);
-      const status = error.name === 'SyntaxError' ? 400 : 500;
-      res.status(status).json({
-        success: false,
-        message: error.name === 'SyntaxError' ? 'Invalid JSON format' : 'Database error during import',
-        error: error.message
-      });
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Error in JSON import:', error);
+    const status = error.name === 'SyntaxError' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      message: error.name === 'SyntaxError' ? 'Invalid JSON format' : 'Database error during import',
+      error: error.message
+    });
+  }
 };
 
 export const validateImportedHabit = (habitData, index) => {
@@ -218,8 +202,10 @@ export const exportHabits = async (req, res) => {
     const habits = await Habit.find(query).sort({ createdAt: -1 });
 
     if (format === 'csv') {
+      // Use /tmp directory for serverless environments like Vercel
+      const csvFilePath = '/tmp/habits.csv';
       const csvWriter = createObjectCsvWriter({
-        path: 'exports/habits.csv',
+        path: csvFilePath,
         header: [
           { id: '_id', title: 'ID' },
           { id: 'name', title: 'Name' },
@@ -244,7 +230,7 @@ export const exportHabits = async (req, res) => {
 
       await csvWriter.writeRecords(csvData);
 
-      res.download('exports/habits.csv', 'habits.csv', (err) => {
+      res.download(csvFilePath, 'habits.csv', (err) => {
         if (err) {
           console.error('CSV download error:', err);
           return res.status(500).json({
@@ -255,7 +241,7 @@ export const exportHabits = async (req, res) => {
         }
 
         try {
-          fs.unlinkSync('exports/habits.csv');
+          fs.unlinkSync(csvFilePath);
         } catch (cleanupError) {
           console.error('Error cleaning up CSV file:', cleanupError);
         }

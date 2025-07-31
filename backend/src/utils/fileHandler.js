@@ -1,8 +1,23 @@
+
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
+
+// Use /tmp/uploads for Vercel compatibility
+const uploadDir = '/tmp/uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 export const upload = multer({
-  dest: 'uploads/',
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + path.extname(file.originalname));
+    }
+  }),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },

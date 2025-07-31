@@ -32,10 +32,7 @@ app.use('/api/habits/bulk', bulkRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Create necessary directories
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
+// Create necessary directories (do not create 'uploads' on Vercel, handled in fileHandler.js)
 if (!fs.existsSync('exports')) {
   fs.mkdirSync('exports');
 }

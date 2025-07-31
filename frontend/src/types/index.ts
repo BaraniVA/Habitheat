@@ -124,6 +124,7 @@ export type View =
   | "add-habit"
   | "insights"
   | "achievements"
+  | "blogs"
   | "challenges"
   | "mood"
   | "social"

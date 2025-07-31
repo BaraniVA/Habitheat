@@ -19,6 +19,7 @@ import { useTheme } from './hooks/useTheme';
 import { Habit, View, HabitTemplate } from './types';
 import ProfilePage from './pages/ProfilePage';
 import { Footer } from './components/Footer';
+import Blogs from './pages/Blogs';
 import { loadCustomTemplates, saveCustomTemplates } from './utils/storage';
 
 function App() {
@@ -105,6 +106,8 @@ function App() {
         setCurrentView('insights');
       } else if (path === '/achievements') {
         setCurrentView('achievements');
+      }else if(path == '/blogs'){
+        setCurrentView('blogs');
       } else if (path === '/challenges') {
         setCurrentView('challenges');
       } else if (path === '/mood') {
@@ -134,6 +137,7 @@ function App() {
       insights: '/insights',
       achievements: '/achievements', 
       challenges: '/challenges',
+      blogs: '/blogs',
       mood: '/mood',
       templates: '/templates',
       profile: '/profile'
@@ -146,11 +150,11 @@ function App() {
     }
   };
 
-  const getHeaderView = (view: View): 'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' | 'profile' => {
+  const getHeaderView = (view: View): 'dashboard' | 'insights' | 'achievements' | 'blogs' |'challenges' | 'mood' | 'templates' | 'profile' => {
     if (['not-found', 'habit-detail', 'add-habit', 'social'].includes(view)) {
       return 'dashboard';
     }
-    return view as 'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' | 'profile';
+    return view as 'dashboard' | 'insights' | 'achievements' | 'blogs' | 'challenges' | 'mood' | 'templates' | 'profile';
   };
 
   const handleNavigateHome = () => {
@@ -389,7 +393,9 @@ function App() {
       {currentView === 'achievements' && (
         <AchievementsView achievements={achievements} />
       )}
-
+      {currentView === 'blogs' && (
+        <Blogs />
+      )}
       {currentView === 'challenges' && (
         <ChallengesView 
           habits={habits}

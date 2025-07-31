@@ -24,6 +24,7 @@ export const Footer = () => {
             <li><a href="/insights" className="hover:underline">Insights</a></li>
             <li><a href="/achievements" className="hover:underline">Achievements</a></li>
             <li><a href="/challenges" className="hover:underline">Challenges</a></li>
+            <li><a href="/blogs" className="hover:underline">Blogs</a></li>
             <li><a href="/mood" className="hover:underline">Mood Tracker</a></li>
             <li><a href="/templates" className="hover:underline">Habit Templates</a></li>
             <li><a href="/profile" className="hover:underline">Profile</a></li>

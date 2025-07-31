@@ -5,7 +5,7 @@ import helmet from "helmet";
 import authRoutes from "./routes/auth.js";
 import habitRoutes from './routes/habitRoutes.js';
 import bulkRoutes from './routes/bulkRoutes.js';
-
+import blogRoutes from './routes/blogsRoutes.js';
 
 import { globalRateLimit } from './middleware/ratelimiting.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -26,7 +26,8 @@ app.use(globalRateLimit);
 app.use("/api/auth", authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/habits/bulk', bulkRoutes);
-
+app.use("/api/auth", authRoutes);
+app.use('/api/blogs', blogRoutes); 
 
 // Error handling
 app.use(notFoundHandler);

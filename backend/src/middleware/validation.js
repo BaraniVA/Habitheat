@@ -108,18 +108,6 @@ export const validateId = [
   param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer')
 ];
 
-export const validateBulkDelete = [
-  body('ids')
-    .isArray({ min: 1 })
-    .withMessage('IDs must be a non-empty array')
-    .custom(ids => ids.every(id => Number.isInteger(id) && id > 0))
-    .withMessage('All IDs must be positive integers')
-];
-
-export const validateExport = [
-  query('format').isIn(['csv', 'json']).withMessage('Format must be csv or json')
-];
-
 export const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

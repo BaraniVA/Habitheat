@@ -9,26 +9,22 @@
       }
     },
     {
-      "src": "backend/src/index.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/auth/(.*)",
-      "dest": "/backend/src/index.js"
-    },
-    {
       "src": "/api/(.*)",
-      "dest": "/backend/src/index.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/assets/(.*)",
       "dest": "/frontend/assets/$1"
     },
     {
-      "src": "/fevicon.png",
-      "dest": "/frontend/fevicon.png"
+      "src": "/favicon.png",
+      "dest": "/frontend/favicon.png"
     },
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
@@ -38,5 +34,8 @@
       "src": "/(.*)",
       "dest": "/frontend/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

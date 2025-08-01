@@ -2,8 +2,20 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+// Validate required environment variables
+const validateEnvVars = () => {
+  if (!process.env.JWT_SECRET_KEY) {
+    throw new Error('JWT_SECRET_KEY environment variable is required');
+  }
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is required');
+  }
+};
+
 export const signup = async (req, res, next) => {
   try {
+    validateEnvVars();
+    
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
@@ -33,6 +45,8 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
+    validateEnvVars();
+    
     const { email, password } = req.body;
 
     if (!email || !password) {

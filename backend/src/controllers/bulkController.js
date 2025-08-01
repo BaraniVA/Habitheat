@@ -1,32 +1,15 @@
 import Habit from '../models/habitModel.js';
 import { sanitizeHabit } from '../utils/sanitizer.js';
-import path from 'path';
-import csv from 'csv-parser';
 import mongoose from 'mongoose';
-import { Readable } from 'stream';
 
 // POST /api/habits/bulk/import
 export const importHabits = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded'
-      });
-    }
-
-    const fileExtension = path.extname(req.file.originalname).toLowerCase();
-
-    if (fileExtension === '.csv') {
-      await handleCSVImport(req.file.buffer, res);
-    } else if (fileExtension === '.json') {
-      await handleJSONImport(req.file.buffer, res);
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'Unsupported file format'
-      });
-    }
+    // For now, return a simple message since file upload is disabled
+    return res.status(501).json({
+      success: false,
+      message: 'File upload functionality is temporarily disabled for Vercel compatibility'
+    });
   } catch (error) {
     console.error('Error in importHabits:', error);
     res.status(500).json({
@@ -37,129 +20,7 @@ export const importHabits = async (req, res) => {
   }
 };
 
-export const handleCSVImport = async (fileBuffer, res) => {
-  const importedHabits = [];
-  const errors = [];
-  let rowIndex = 0;
-
-  return new Promise((resolve, reject) => {
-    const readableStream = new Readable();
-    readableStream.push(fileBuffer);
-    readableStream.push(null);
-
-    readableStream
-      .pipe(csv())
-      .on('data', (row) => {
-        rowIndex++;
-        try {
-          const habit = validateImportedHabit(row, rowIndex);
-          if (habit.errors.length > 0) {
-            errors.push(...habit.errors);
-            return;
-          }
-          importedHabits.push(habit.data);
-        } catch (error) {
-          errors.push(`Row ${rowIndex}: ${error.message}`);
-        }
-      })
-      .on('end', async () => {
-        if (errors.length > 0) {
-          return res.status(400).json({
-            success: false,
-            message: 'Import failed with validation errors',
-            errors
-          });
-        }
-
-        try {
-          const createdHabits = await Habit.insertMany(importedHabits, {
-            ordered: false,
-            validateBeforeSave: true
-          });
-
-          res.status(200).json({
-            success: true,
-            message: `Successfully imported ${createdHabits.length} habits`,
-            data: {
-              imported: createdHabits.length,
-              habits: createdHabits
-            }
-          });
-          resolve();
-        } catch (dbError) {
-          console.error('Database error during bulk import:', dbError);
-          res.status(500).json({
-            success: false,
-            message: 'Database error during import',
-            error: dbError.message
-          });
-          reject(dbError);
-        }
-      })
-      .on('error', (error) => {
-        res.status(400).json({
-          success: false,
-          message: 'Failed to parse CSV file',
-          error: error.message
-        });
-        reject(error);
-      });
-  });
-};
-
-export const handleJSONImport = async (fileBuffer, res) => {
-  try {
-    const data = fileBuffer.toString('utf8');
-    const jsonData = JSON.parse(data);
-    const habitsArray = Array.isArray(jsonData) ? jsonData : [jsonData];
-    const importedHabits = [];
-    const errors = [];
-
-    habitsArray.forEach((habitData, index) => {
-      try {
-        const habit = validateImportedHabit(habitData, index + 1);
-        if (habit.errors.length > 0) {
-          errors.push(...habit.errors);
-          return;
-        }
-        importedHabits.push(habit.data);
-      } catch (error) {
-        errors.push(`Item ${index + 1}: ${error.message}`);
-      }
-    });
-
-    if (errors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Import failed with validation errors',
-        errors
-      });
-    }
-
-    const createdHabits = await Habit.insertMany(importedHabits, {
-      ordered: false,
-      validateBeforeSave: true
-    });
-
-    res.status(200).json({
-      success: true,
-      message: `Successfully imported ${createdHabits.length} habits`,
-      data: {
-        imported: createdHabits.length,
-        habits: createdHabits
-      }
-    });
-  } catch (error) {
-    console.error('Error in JSON import:', error);
-    const status = error.name === 'SyntaxError' ? 400 : 500;
-    res.status(status).json({
-      success: false,
-      message: error.name === 'SyntaxError' ? 'Invalid JSON format' : 'Database error during import',
-      error: error.message
-    });
-  }
-};
-
+// Simplified validation function for when file upload is re-enabled
 export const validateImportedHabit = (habitData, index) => {
   const errors = [];
 

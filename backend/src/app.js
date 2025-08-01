@@ -1,4 +1,3 @@
-
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
@@ -30,7 +29,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(globalRateLimit);
 
-// API routes
+app.get('/test-cors', (req, res) => {
+  res.json({ message: 'CORS test' });
+});
+
 app.use("/api/auth", authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/habits/bulk', bulkRoutes);

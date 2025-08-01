@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
+dotenv.config();
 import connectDB from "./db/connect.js";
 import app from "./app.js";
 
-dotenv.config();
 
 // Connect to database once
 let isConnected = false;

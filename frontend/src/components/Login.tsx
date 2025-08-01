@@ -80,7 +80,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup, onLoginSuccess }) => {
   });
 
   //const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || '/api/auth';
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
     ? `${import.meta.env.VITE_API_BASE_URL}/api/auth`
     : '/api/auth';
 
@@ -122,6 +122,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup, onLoginSuccess }) => {
       const response = await axios.post<LoginResponse>(`${API_BASE_URL}/login`, {
         email: formData.email,
         password: formData.password
+      }, {
+        withCredentials: true
       });
 
       // Store token and user data

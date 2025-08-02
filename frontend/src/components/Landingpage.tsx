@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Target,
   BarChart3,
@@ -13,7 +13,11 @@ import {
 
 import { TypeAnimation } from 'react-type-animation';
 
-export default function HabitHeatLanding({ handleGetStarted }) {
+interface HabitHeatLandingProps {
+  handleGetStarted: () => void;
+}
+
+export default function HabitHeatLanding({ handleGetStarted }: HabitHeatLandingProps) {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   const testimonials = [
@@ -331,7 +335,7 @@ export default function HabitHeatLanding({ handleGetStarted }) {
         </div>
       </footer> */}
 
-      <style jsx>{`
+      <style>{`
         @keyframes blob {
           0% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(30px, -50px) scale(1.1); }

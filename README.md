@@ -5,6 +5,7 @@ A modern, feature-rich habit tracking application built with React and TypeScrip
 ## ✨ Features
 
 ### 🎯 Core Habit Tracking
+
 - **Create Custom Habits**: Add personalized habits with emojis, colors, and categories
 - **Daily Completion**: Mark habits as complete with a simple, intuitive interface
 - **Streak Tracking**: Monitor current and longest streaks for motivation
@@ -12,6 +13,7 @@ A modern, feature-rich habit tracking application built with React and TypeScrip
 - **Habit Archives**: Archive completed or outdated habits to keep your dashboard clean
 
 ### 📊 Analytics & Insights
+
 - **Completion Statistics**: Track completion rates, total completions, and missed days
 - **Weekly & Monthly Progress**: Monitor short and long-term trends
 - **Best Performance Analysis**: Identify your best performing habits and optimal days
@@ -19,12 +21,14 @@ A modern, feature-rich habit tracking application built with React and TypeScrip
 - **Smart Insights**: Get personalized recommendations based on your patterns
 
 ### 🏆 Gamification
+
 - **Achievement System**: Unlock achievements for milestones and consistent performance
 - **Challenge System**: Take on personalized challenges to push your limits
 - **Progress Rewards**: Earn badges and rewards for maintaining streaks
 - **Difficulty Levels**: Habits categorized by difficulty (easy, medium, hard)
 
 ### 🎨 User Experience
+
 - **Dark/Light Mode**: Toggle between themes for comfortable viewing
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Habit Templates**: Quick-start with pre-made habit templates
@@ -32,12 +36,22 @@ A modern, feature-rich habit tracking application built with React and TypeScrip
 - **Priority Levels**: Set habit priorities to focus on what matters most
 
 ### 🧠 Mood Tracking
+
 - **Daily Mood Logging**: Track your emotional state with a 5-point scale
 - **Energy & Stress Levels**: Monitor energy and stress alongside mood
 - **Mood History**: Review past moods to identify patterns
 - **Personal Notes**: Add reflections and thoughts to your daily mood entries
 
-### 🔧 Advanced Features
+### � Authentication & Security
+
+- **User Authentication**: Secure login and registration system
+- **Google OAuth**: Sign in with your Google account for convenience
+- **JWT Tokens**: Secure authentication with JSON Web Tokens
+- **Profile Management**: Manage your account and preferences
+- **Data Privacy**: Your data is securely stored and protected
+
+### �🔧 Advanced Features
+
 - **Local Storage**: All data stored locally on your device
 - **Quick Actions**: Rapidly complete today's habits from the dashboard
 - **Habit Details**: Deep dive into individual habit statistics and history
@@ -47,33 +61,85 @@ A modern, feature-rich habit tracking application built with React and TypeScrip
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/yourusername/habit-heat.git
 cd habit-heat
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Start the development server**
+
 ```bash
 npm run dev
 ```
 
 4. **Open your browser**
-Navigate to `http://localhost:5173` to start using Habit Heat!
+   Navigate to `http://localhost:5173` to start using Habit Heat!
+
+### Backend Setup (Optional - for Authentication)
+
+The application includes a Node.js backend for user authentication and data persistence:
+
+1. **Navigate to backend folder**
+
+```bash
+cd backend
+```
+
+2. **Install backend dependencies**
+
+```bash
+npm install
+```
+
+3. **Configure environment variables**
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env with your configuration
+# Required: MongoDB URI, JWT Secret
+# Optional: Google OAuth credentials (see Google OAuth Setup Guide)
+```
+
+4. **Start the backend server**
+
+```bash
+npm run dev
+```
+
+### Google OAuth Setup
+
+For Google OAuth authentication, follow our comprehensive setup guide:
+
+📖 **[Google OAuth Setup Guide](./GOOGLE_OAUTH_SETUP.md)**
+
+This guide covers:
+
+- Creating a Google Cloud Project
+- Configuring OAuth consent screen
+- Setting up OAuth 2.0 credentials
+- Environment variable configuration
+- Troubleshooting common issues
 
 ## 📱 Usage
 
 ### Creating Your First Habit
+
 1. Click the "+" button or "Add Habit" on the dashboard
 2. Choose from pre-made templates or create a custom habit
 3. Set your habit name, emoji, color, and category
@@ -81,17 +147,20 @@ Navigate to `http://localhost:5173` to start using Habit Heat!
 5. Add motivational quotes or custom rewards (optional)
 
 ### Daily Tracking
+
 - Use the dashboard to quickly mark today's habits as complete
 - View your current streaks and completion rates
 - Check the mini-heatmap to see recent progress patterns
 
 ### Viewing Progress
+
 - Navigate to **Insights** for detailed analytics
 - Check **Achievements** to see unlocked milestones
 - Visit **Challenges** to take on new goals
 - Use **Mood Tracker** to log emotional well-being
 
 ### Customization
+
 - Toggle between light and dark themes
 - Sort habits by various criteria (streak, completion rate, etc.)
 - Filter habits by status or priority
@@ -100,17 +169,31 @@ Navigate to `http://localhost:5173` to start using Habit Heat!
 ## 🏗️ Tech Stack
 
 ### Frontend
+
 - **React 18** - Modern UI library with hooks
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
 - **Lucide React** - Beautiful, customizable icons
 
+### Backend
+
+- **Node.js** - JavaScript runtime environment
+- **Express.js** - Web application framework
+- **MongoDB** - NoSQL database for data persistence
+- **Mongoose** - MongoDB object modeling
+- **JWT** - JSON Web Tokens for authentication
+- **Passport.js** - Authentication middleware with Google OAuth
+- **bcrypt** - Password hashing and security
+
 ### Build Tools
+
 - **Vite** - Fast build tool and dev server
 - **ESLint** - Code linting and formatting
 - **PostCSS** - CSS processing
 
 ### Features
+
+- **Authentication System** - User registration and login with Google OAuth
 - **Local Storage** - Client-side data persistence
 - **Responsive Design** - Mobile-first approach
 - **Theme System** - Dark/light mode support
@@ -184,61 +267,84 @@ project/                 # Frontend React application
 ### 🏗️ Backend Structure
 
 ```
-server/
+backend/
 ├── src/
 │   ├── controllers/
-│   │   └── authController.js    # Authentication business logic
+│   │   ├── authController.js      # Authentication business logic
+│   │   ├── habitController.js     # Habit management logic
+│   │   └── bulkController.js      # Bulk operations
+│   ├── config/
+│   │   └── passport.js            # Passport.js Google OAuth configuration
 │   ├── db/
-│   │   └── connect.js          # Database connection configuration
+│   │   └── connect.js             # Database connection configuration
 │   ├── middleware/
-│   │   └── errorHandler.js     # Global error handling middleware
+│   │   ├── auth.js                # JWT authentication middleware
+│   │   ├── errorHandler.js        # Global error handling middleware
+│   │   ├── ratelimiting.js        # Rate limiting middleware
+│   │   └── validation.js          # Input validation middleware
 │   ├── models/
-│   │   └── User.js             # User schema and model
+│   │   ├── User.js                # User schema and model (with Google OAuth)
+│   │   └── habitModel.js          # Habit schema and model
 │   ├── routes/
-│   │   └── auth.js             # Authentication routes
-│   ├── app.js                  # Express app configuration
-│   └── index.js                # Server entry point
-├── .env.example                # Environment variables template
-├── .env.production             # Production environment variables
-└── README.md                   # Server documentation
+│   │   ├── auth.js                # Authentication routes (including Google OAuth)
+│   │   ├── habitRoutes.js         # Habit management routes
+│   │   └── bulkRoutes.js          # Bulk operation routes
+│   ├── utils/
+│   │   ├── fileHandler.js         # File upload handling
+│   │   └── sanitizer.js           # Data sanitization utilities
+│   ├── app.js                     # Express app configuration
+│   └── index.js                   # Server entry point
+├── uploads/                       # File upload directory
+├── exports/                       # Data export directory
+├── .env.example                   # Environment variables template
+├── .env.production                # Production environment variables (with Google OAuth)
+└── README.md                      # Server documentation
 ```
-
 
 ## 🎯 Key Components
 
 ### Habit Management
+
 - **HabitCard**: Displays habit summary with mini-heatmap
 - **HabitDetail**: Full habit view with detailed statistics
 - **AddHabitModal**: Streamlined habit creation process
 
 ### Analytics
+
 - **InsightsView**: Comprehensive analytics dashboard
 - **HabitStats**: Advanced statistics calculations
 - **Progress Tracking**: Visual progress indicators
 
 ### Gamification
+
 - **AchievementsView**: Achievement gallery and progress
 - **ChallengesView**: Active and available challenges
 - **Achievement System**: Automated milestone detection
 
 ## 🔒 Data & Privacy
 
-- **Local Storage**: All data stays on your device
-- **No Tracking**: No analytics or user tracking
-- **Offline First**: Works completely offline
-- **Data Control**: Export/import your data anytime
+- **Secure Authentication**: JWT-based authentication with optional Google OAuth
+- **Data Protection**: User data securely stored in MongoDB with proper encryption
+- **Privacy First**: Minimal data collection, only essential information
+- **User Control**: Full control over your account and data
+- **No Tracking**: No unnecessary analytics or user tracking
+- **HTTPS Security**: All production traffic encrypted and secure
 
 ## 🌟 Features in Detail
 
 ### Habit Templates
+
 Pre-configured habits across categories:
+
 - **Health & Fitness**: Exercise, water intake, healthy eating
 - **Learning**: Reading, language practice, skill development
 - **Mindfulness**: Meditation, gratitude journaling
 - **Digital Wellness**: Screen time limits, no-phone mornings
 
 ### Achievement System
+
 Unlock achievements for:
+
 - Creating your first habit
 - Maintaining streaks (7, 30, 100+ days)
 - Achieving perfect completion rates
@@ -246,6 +352,7 @@ Unlock achievements for:
 - Consistency milestones
 
 ### Challenge System
+
 - **Streak Challenges**: Build long-term consistency
 - **Completion Challenges**: Hit specific targets
 - **Multi-Habit Challenges**: Complete multiple habits daily
@@ -264,6 +371,7 @@ We welcome contributions! Please follow these steps:
 7. **Open a Pull Request** using our PR template
 
 ### 📋 Pull Request Guidelines
+
 - Fill out the PR template completely
 - Include screenshots for UI changes
 - Write clear commit messages
@@ -272,15 +380,30 @@ We welcome contributions! Please follow these steps:
 - Follow TypeScript and React best practices
 
 ### 🏗️ Development Setup
+
 ```bash
 # Clone your fork
 git clone https://github.com/yourusername/habit-heat.git
 cd habit-heat
 
-# Install dependencies
+# Install frontend dependencies
 npm install
 
-# Start development server
+# Install backend dependencies
+cd backend
+npm install
+cd ..
+
+# Configure backend environment
+cd backend
+cp .env.example .env
+# Edit .env with your MongoDB URI, JWT secret, and optional Google OAuth credentials
+cd ..
+
+# Start backend server (in one terminal)
+cd backend && npm run dev
+
+# Start frontend development server (in another terminal)
 npm run dev
 
 # Run linting
@@ -289,6 +412,8 @@ npm run lint
 # Build for production
 npm run build
 ```
+
+For Google OAuth setup, see the [Google OAuth Setup Guide](./GOOGLE_OAUTH_SETUP.md).
 
 ## 📄 License
 
@@ -304,6 +429,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📧 Support
 
 If you encounter any issues or have questions:
+
 - Open an issue on GitHub
 - Check the documentation in the `/docs` folder
 - Review the TypeScript definitions in `/src/types`
@@ -312,7 +438,7 @@ If you encounter any issues or have questions:
 
 **Start building better habits today with Habit Heat!** 🔥
 
-*Turn your daily routines into powerful habits that stick.*
+_Turn your daily routines into powerful habits that stick._
 
 <p align="center">
   <a href="#top" style="font-size: 18px; padding: 8px 16px; display: inline-block; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">

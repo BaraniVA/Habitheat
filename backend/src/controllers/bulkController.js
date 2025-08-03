@@ -1,9 +1,6 @@
 import Habit from '../models/habitModel.js';
 import { sanitizeHabit } from '../utils/sanitizer.js';
-import fs from 'fs';
 import path from 'path';
-import csv from 'csv-parser';
-import { createObjectCsvWriter } from 'csv-writer';
 import mongoose from 'mongoose';
 
 // POST /api/habits/bulk/import
@@ -16,13 +13,14 @@ export const importHabits = async (req, res) => {
       });
     }
 
-    const filePath = req.file.path;
+    // Using memory storage, so file is in req.file.buffer
+    const fileBuffer = req.file.buffer;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
 
     if (fileExtension === '.csv') {
-      await handleCSVImport(filePath, res);
+      await handleCSVImport(fileBuffer, res);
     } else if (fileExtension === '.json') {
-      await handleJSONImport(filePath, res);
+      await handleJSONImport(fileBuffer, res);
     } else {
       return res.status(400).json({
         success: false,
@@ -30,14 +28,6 @@ export const importHabits = async (req, res) => {
       });
     }
   } catch (error) {
-    if (req.file?.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (cleanupError) {
-        console.error('Error cleaning up file:', cleanupError);
-      }
-    }
-
     console.error('Error in importHabits:', error);
     res.status(500).json({
       success: false,
@@ -47,132 +37,127 @@ export const importHabits = async (req, res) => {
   }
 };
 
-export const handleCSVImport = async (filePath, res) => {
+export const handleCSVImport = async (fileBuffer, res) => {
   const importedHabits = [];
   const errors = [];
   let rowIndex = 0;
 
-  fs.createReadStream(filePath)
-    .pipe(csv())
-    .on('data', (row) => {
-      rowIndex++;
+  // Convert buffer to string and split into lines
+  const csvContent = fileBuffer.toString('utf8');
+  const lines = csvContent.split('\n');
+  const headers = lines[0].split(',').map(h => h.trim());
+
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue; // Skip empty lines
+    
+    rowIndex++;
+    try {
+      const values = lines[i].split(',').map(v => v.trim());
+      const row = {};
+      headers.forEach((header, index) => {
+        row[header] = values[index] || '';
+      });
+
+      const habit = validateImportedHabit(row, rowIndex);
+      if (habit.errors.length > 0) {
+        errors.push(...habit.errors);
+        continue;
+      }
+      importedHabits.push(habit.data);
+    } catch (error) {
+      errors.push(`Row ${rowIndex}: ${error.message}`);
+    }
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Import failed with validation errors',
+      errors
+    });
+  }
+
+  try {
+    const createdHabits = await Habit.insertMany(importedHabits, {
+      ordered: false,
+      validateBeforeSave: true
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully imported ${createdHabits.length} habits`,
+      data: {
+        imported: createdHabits.length,
+        habits: createdHabits
+      }
+    });
+  } catch (dbError) {
+    console.error('Database error during bulk import:', dbError);
+    res.status(500).json({
+      success: false,
+      message: 'Database error during import',
+      error: dbError.message
+    });
+  }
+};
+
+export const handleJSONImport = async (fileBuffer, res) => {
+  try {
+    const jsonContent = fileBuffer.toString('utf8');
+    const data = JSON.parse(jsonContent);
+
+    if (!Array.isArray(data)) {
+      return res.status(400).json({
+        success: false,
+        message: 'JSON file must contain an array of habits'
+      });
+    }
+
+    const importedHabits = [];
+    const errors = [];
+
+    data.forEach((habitData, index) => {
       try {
-        const habit = validateImportedHabit(row, rowIndex);
+        const habit = validateImportedHabit(habitData, index + 1);
         if (habit.errors.length > 0) {
           errors.push(...habit.errors);
           return;
         }
         importedHabits.push(habit.data);
       } catch (error) {
-        errors.push(`Row ${rowIndex}: ${error.message}`);
+        errors.push(`Item ${index + 1}: ${error.message}`);
       }
-    })
-    .on('end', async () => {
-      fs.unlinkSync(filePath);
-
-      if (errors.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Import failed with validation errors',
-          errors
-        });
-      }
-
-      try {
-        const createdHabits = await Habit.insertMany(importedHabits, {
-          ordered: false,
-          validateBeforeSave: true
-        });
-
-        res.status(200).json({
-          success: true,
-          message: `Successfully imported ${createdHabits.length} habits`,
-          data: {
-            imported: createdHabits.length,
-            habits: createdHabits
-          }
-        });
-      } catch (dbError) {
-        console.error('Database error during bulk import:', dbError);
-        res.status(500).json({
-          success: false,
-          message: 'Database error during import',
-          error: dbError.message
-        });
-      }
-    })
-    .on('error', (error) => {
-      fs.unlinkSync(filePath);
-      res.status(400).json({
-        success: false,
-        message: 'Failed to parse CSV file',
-        error: error.message
-      });
     });
-};
 
-export const handleJSONImport = async (filePath, res) => {
-  fs.readFile(filePath, 'utf8', async (err, data) => {
-    fs.unlinkSync(filePath);
-
-    if (err) {
+    if (errors.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Failed to read JSON file',
-        error: err.message
+        message: 'Import failed with validation errors',
+        errors
       });
     }
 
-    try {
-      const jsonData = JSON.parse(data);
-      const habitsArray = Array.isArray(jsonData) ? jsonData : [jsonData];
-      const importedHabits = [];
-      const errors = [];
+    const createdHabits = await Habit.insertMany(importedHabits, {
+      ordered: false,
+      validateBeforeSave: true
+    });
 
-      habitsArray.forEach((habitData, index) => {
-        try {
-          const habit = validateImportedHabit(habitData, index + 1);
-          if (habit.errors.length > 0) {
-            errors.push(...habit.errors);
-            return;
-          }
-          importedHabits.push(habit.data);
-        } catch (error) {
-          errors.push(`Item ${index + 1}: ${error.message}`);
-        }
-      });
-
-      if (errors.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Import failed with validation errors',
-          errors
-        });
+    res.status(200).json({
+      success: true,
+      message: `Successfully imported ${createdHabits.length} habits`,
+      data: {
+        imported: createdHabits.length,
+        habits: createdHabits
       }
-
-      const createdHabits = await Habit.insertMany(importedHabits, {
-        ordered: false,
-        validateBeforeSave: true
-      });
-
-      res.status(200).json({
-        success: true,
-        message: `Successfully imported ${createdHabits.length} habits`,
-        data: {
-          imported: createdHabits.length,
-          habits: createdHabits
-        }
-      });
-    } catch (error) {
-      console.error('Error in JSON import:', error);
-      const status = error.name === 'SyntaxError' ? 400 : 500;
-      res.status(status).json({
-        success: false,
-        message: error.name === 'SyntaxError' ? 'Invalid JSON format' : 'Database error during import',
-        error: error.message
-      });
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Error in handleJSONImport:', error);
+    res.status(400).json({
+      success: false,
+      message: 'Failed to parse JSON file',
+      error: error.message
+    });
+  }
 };
 
 export const validateImportedHabit = (habitData, index) => {
@@ -218,48 +203,36 @@ export const exportHabits = async (req, res) => {
     const habits = await Habit.find(query).sort({ createdAt: -1 });
 
     if (format === 'csv') {
-      const csvWriter = createObjectCsvWriter({
-        path: 'exports/habits.csv',
-        header: [
-          { id: '_id', title: 'ID' },
-          { id: 'name', title: 'Name' },
-          { id: 'description', title: 'Description' },
-          { id: 'category', title: 'Category' },
-          { id: 'frequency', title: 'Frequency' },
-          { id: 'targetValue', title: 'Target Value' },
-          { id: 'unit', title: 'Unit' },
-          { id: 'isActive', title: 'Active' },
-          { id: 'reminderTime', title: 'Reminder Time' },
-          { id: 'tags', title: 'Tags' },
-          { id: 'streak', title: 'Streak' },
-          { id: 'createdAt', title: 'Created At' },
-          { id: 'updatedAt', title: 'Updated At' }
-        ]
-      });
+      // Generate CSV content in memory
+      const headers = ['ID', 'Name', 'Description', 'Category', 'Frequency', 'Target Value', 'Unit', 'Active', 'Reminder Time', 'Tags', 'Streak', 'Created At', 'Updated At'];
+      
+      const csvRows = [
+        headers.join(','),
+        ...habits.map(habit => {
+          const row = [
+            habit._id,
+            `"${habit.name?.replace(/"/g, '""') || ''}"`,
+            `"${habit.description?.replace(/"/g, '""') || ''}"`,
+            habit.category || '',
+            habit.frequency || '',
+            habit.targetValue || '',
+            `"${habit.unit?.replace(/"/g, '""') || ''}"`,
+            habit.isActive,
+            habit.reminderTime || '',
+            `"${habit.tags?.join(', ')?.replace(/"/g, '""') || ''}"`,
+            habit.streak || 0,
+            habit.createdAt,
+            habit.updatedAt
+          ];
+          return row.join(',');
+        })
+      ];
 
-      const csvData = habits.map(habit => ({
-        ...habit.toObject(),
-        tags: habit.tags?.join(', ') || ''
-      }));
-
-      await csvWriter.writeRecords(csvData);
-
-      res.download('exports/habits.csv', 'habits.csv', (err) => {
-        if (err) {
-          console.error('CSV download error:', err);
-          return res.status(500).json({
-            success: false,
-            message: 'Failed to download CSV file',
-            error: err.message
-          });
-        }
-
-        try {
-          fs.unlinkSync('exports/habits.csv');
-        } catch (cleanupError) {
-          console.error('Error cleaning up CSV file:', cleanupError);
-        }
-      });
+      const csvContent = csvRows.join('\n');
+      
+      res.setHeader('Content-Disposition', 'attachment; filename=habits.csv');
+      res.setHeader('Content-Type', 'text/csv');
+      res.status(200).send(csvContent);
     } else {
       res.setHeader('Content-Disposition', 'attachment; filename=habits.json');
       res.setHeader('Content-Type', 'application/json');

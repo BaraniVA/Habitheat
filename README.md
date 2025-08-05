@@ -184,7 +184,7 @@ project/                 # Frontend React application
 ### 🏗️ Backend Structure
 
 ```
-server/
+backend/
 ├── src/
 │   ├── controllers/
 │   │   └── authController.js    # Authentication business logic
@@ -202,7 +202,6 @@ server/
 ├── .env.production             # Production environment variables
 └── README.md                   # Server documentation
 ```
-
 
 ## 🎯 Key Components
 
@@ -315,9 +314,5 @@ If you encounter any issues or have questions:
 *Turn your daily routines into powerful habits that stick.*
 
 <p align="center">
-  <a href="#top" style="font-size: 18px; padding: 8px 16px; display: inline-block; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
-    ⬆️ Back to Top
-  </a>
+  <a href="#top">⬆️ Back to Top</a>
 </p>
-#   F o r c e   r e b u i l d   -   0 8 / 0 5 / 2 0 2 5   2 2 : 5 5 : 0 1  
- 

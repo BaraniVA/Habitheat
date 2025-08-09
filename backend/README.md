@@ -18,36 +18,43 @@ This is the backend API server for Habit Heat, a habit tracking application. Bui
 ## 🔧 Installation & Setup
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - MongoDB database (local or cloud)
 - npm or yarn package manager
 
 ### 1. Clone and Navigate
+
 ```bash
 cd server
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Environment Configuration
+
 Copy the environment template and configure your settings:
+
 ```bash
 cp .env.example .env
 ```
-Edit `.env` file with your configuration
 
+Edit `.env` file with your configuration
 
 ### 4. Start the Server
 
 **Development mode (with hot reload):**
+
 ```bash
 npm run dev
 ```
 
 **Production mode:**
+
 ```bash
 npm start
 ```
@@ -57,16 +64,21 @@ The server will start on `http://localhost:5000`
 ## 🔐 API Endpoints
 
 ### Authentication Routes
+
 Base URL: `/api/auth`
 
-| Method | Endpoint | Description | Body |
-|--------|----------|-------------|------|
-| POST | `/signup` | Register new user | `{ username, email, password }` |
-| POST | `/login` | User login | `{ email, password }` |
+| Method | Endpoint           | Description                  | Body                            |
+| ------ | ------------------ | ---------------------------- | ------------------------------- |
+| POST   | `/signup`          | Register new user            | `{ username, email, password }` |
+| POST   | `/login`           | User login                   | `{ email, password }`           |
+| GET    | `/google`          | Initialize Google OAuth      | -                               |
+| GET    | `/google/callback` | Google OAuth callback        | -                               |
+| GET    | `/google/failure`  | Google OAuth failure handler | -                               |
 
 ### Example Requests
 
 **User Registration:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/signup \
   -H "Content-Type: application/json" \
@@ -78,6 +90,7 @@ curl -X POST http://localhost:5000/api/auth/signup \
 ```
 
 **User Login:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -91,35 +104,48 @@ curl -X POST http://localhost:5000/api/auth/login \
 
 - **Password Hashing**: Uses bcrypt with salt rounds for secure password storage
 - **JWT Authentication**: Stateless authentication with JSON Web Tokens
+- **Google OAuth 2.0**: Secure authentication with Google accounts
+- **Session Management**: Express sessions for OAuth flows
 - **CORS Protection**: Configured for cross-origin resource sharing
 - **Input Validation**: Server-side validation for all endpoints
 - **Error Handling**: Global error handling middleware
 
 ## 🌍 Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | Server port number | `5000` |
-| `MONGODB_URI` | MongoDB connection string | `your-mongodb-atlas-uri` |
-| `JWT_SECRET_KEY` | Secret key for JWT signing | `your-secret-key` |
-| `DB_NAME` | Database name | `habitheat` |
+| Variable               | Description                 | Example                                          |
+| ---------------------- | --------------------------- | ------------------------------------------------ |
+| `PORT`                 | Server port number          | `5000`                                           |
+| `MONGODB_URI`          | MongoDB connection string   | `your-mongodb-atlas-uri`                         |
+| `JWT_SECRET_KEY`       | Secret key for JWT signing  | `your-secret-key`                                |
+| `DB_NAME`              | Database name               | `habitheat`                                      |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID      | `your-google-client-id`                          |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret  | `your-google-client-secret`                      |
+| `GOOGLE_CALLBACK_URL`  | Google OAuth callback URL   | `http://localhost:5000/api/auth/google/callback` |
+| `FRONTEND_URL`         | Frontend application URL    | `http://localhost:5173`                          |
+| `SESSION_SECRET`       | Session secret for Passport | `your-session-secret`                            |
 
 ## 📦 Dependencies
 
 ### Production Dependencies
+
 - **express**: Web framework for Node.js
 - **mongoose**: MongoDB object modeling tool
 - **bcrypt**: Password hashing library
 - **jsonwebtoken**: JWT implementation
 - **cors**: CORS middleware
 - **dotenv**: Environment variable loader
+- **passport**: Authentication middleware
+- **passport-google-oauth20**: Google OAuth 2.0 strategy
+- **express-session**: Session middleware for Express
 
 ### Development Dependencies
+
 - **nodemon**: Development server with auto-restart
 
 ## 🔍 Database Schema
 
 ### User Model
+
 ```javascript
 {
   username: String (required, min: 3 chars)
@@ -131,6 +157,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 ## 🛡️ Error Handling
 
 The server includes comprehensive error handling:
+
 - **Validation Errors**: Invalid input data
 - **Authentication Errors**: Invalid credentials
 - **Database Errors**: Connection and query issues
@@ -139,6 +166,7 @@ The server includes comprehensive error handling:
 ## 📝 Development Guidelines
 
 ### Adding New Routes
+
 1. Create controller in `src/controllers/`
 2. Define routes in `src/routes/`
 3. Import and use in `src/app.js`
@@ -149,5 +177,3 @@ The server includes comprehensive error handling:
 This project is licensed under the ISC License.
 
 ---
-
-

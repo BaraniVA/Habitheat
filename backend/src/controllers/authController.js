@@ -33,6 +33,7 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
+    console.log('Login request body:', req.body);
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -70,6 +71,7 @@ export const login = async (req, res, next) => {
     });
     return res.status(200).json({
       message: "Login Successful",
+      token,
       user: {
         username: existingUser.username,
         email: existingUser.email,

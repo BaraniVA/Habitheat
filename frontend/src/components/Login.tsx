@@ -79,10 +79,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup, onLoginSuccess }) => {
     password: ''
   });
 
-  //const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || '/api/auth';
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-    ? `${import.meta.env.VITE_API_BASE_URL}/api/auth`
-    : '/api/auth';
+  // Use only the base URL from env, append /api/auth/login in axios call
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -119,7 +117,11 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup, onLoginSuccess }) => {
     setNotification(null);
 
     try {
-      const response = await axios.post<LoginResponse>(`${API_BASE_URL}/login`, {
+      // Always call /api/auth/login, with base URL if provided
+      const endpoint = API_BASE_URL
+        ? `${API_BASE_URL}/api/auth/login`
+        : '/api/auth/login';
+      const response = await axios.post<LoginResponse>(endpoint, {
         email: formData.email,
         password: formData.password
       }, {

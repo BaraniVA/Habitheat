@@ -59,7 +59,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        const token = localStorage.getItem('authToken');
         const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
           credentials: 'include',
         });
         if (!res.ok) throw new Error('Failed to fetch profile');
@@ -95,17 +97,22 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
   const handleUpdateName = async () => {
     setEditWorking(true);
     try {
-      console.log('Sending update name request:', editName);
+  // ...existing code...
+      const token = localStorage.getItem('authToken');
+  // ...existing code...
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         credentials: 'include',
         body: JSON.stringify({ username: editName })
       });
-      console.log('Update name response status:', res.status);
+  // ...existing code...
       if (!res.ok) throw new Error('Failed to update name');
       const updated = await res.json();
-      console.log('Update name response data:', updated);
+  // ...existing code...
       setUserProfile(prev => ({ ...prev, name: updated.username || updated.name }));
       localStorage.setItem('user', JSON.stringify(updated));
       setFlash({ type: 'success', message: 'Name updated successfully!' });
@@ -132,18 +139,23 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         try {
-          console.log('Sending update avatar request');
+          // ...existing code...
           const base64 = reader.result;
+          const token = localStorage.getItem('authToken');
+          // ...existing code...
           const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
             credentials: 'include',
             body: JSON.stringify({ avatar: base64 })
           });
-          console.log('Update avatar response status:', res.status);
+          // ...existing code...
           if (!res.ok) throw new Error('Failed to update avatar');
           const updated = await res.json();
-          console.log('Update avatar response data:', updated);
+          // ...existing code...
           setUserProfile(prev => ({ ...prev, avatar: updated.avatar }));
           localStorage.setItem('user', JSON.stringify(updated));
           setFlash({ type: 'success', message: 'Avatar updated successfully!' });

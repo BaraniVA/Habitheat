@@ -65,16 +65,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling
-app.use(notFoundHandler);
-app.use(errorHandler);
+import authRoutes from "./routes/auth.js";
+import errorHandler from "./middleware/errorHandler.js";
 
-// Create necessary directories
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
-if (!fs.existsSync('exports')) {
-  fs.mkdirSync('exports');
-}
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// API routes
+app.use("/api/auth", authRoutes);
+
+app.use(errorHandler);
 
 export default app;

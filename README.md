@@ -441,7 +441,5 @@ If you encounter any issues or have questions:
 _Turn your daily routines into powerful habits that stick._
 
 <p align="center">
-  <a href="#top" style="font-size: 18px; padding: 8px 16px; display: inline-block; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
-    ⬆️ Back to Top
-  </a>
+  <a href="#top">⬆️ Back to Top</a>
 </p>

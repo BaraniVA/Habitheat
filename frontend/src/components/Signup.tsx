@@ -250,9 +250,12 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
                     </div>
                   </div>
                   <div className="bg-white bg-opacity-90 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-lg">
+
                     <span className="text-orange-600 font-semibold text-xs sm:text-sm">
                       Habit Heat
                     </span>
+
+                    <span className="text-orange-600 font-bold text-4xl sm:text-4xl">Habit Heat</span>
                   </div>
                   <div className="w-8 h-10 sm:w-12 sm:h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white bg-opacity-40 rounded-full flex items-center justify-center">

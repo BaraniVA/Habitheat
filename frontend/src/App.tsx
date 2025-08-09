@@ -427,7 +427,7 @@ function App() {
       {currentView === "insights" && <InsightsView habits={habits} />}
 
       {currentView === "achievements" && (
-        <AchievementsView achievements={achievements} />
+        <AchievementsView achievements={achievements} allHabits={habits} />
       )}
 
       {currentView === "challenges" && (

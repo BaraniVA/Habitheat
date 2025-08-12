@@ -76,7 +76,7 @@ export const HABIT_TEMPLATES: HabitTemplate[] = [
   {
     id: 'gratitude-journal',
     name: 'Write 3 things I\'m grateful for',
-    emoji: '✍️',
+    emoji: '✍',
     color: 'bg-pink-500',
     category: 'Mindfulness',
     difficulty: 'easy',
@@ -144,6 +144,25 @@ export const HABIT_TEMPLATES: HabitTemplate[] = [
     estimatedTime: 30,
     daysPerWeek: 7,
     motivationalQuote: 'Let food be thy medicine and medicine be thy food.'
+  },
+  // --- NEW TEMPLATE ADDED HERE ---
+  {
+    id: 'tidy-up',
+    name: '15-Minute Tidy-Up',
+    emoji: '🧹',
+    color: 'bg-teal-500',
+    category: 'Home',
+    difficulty: 'easy',
+    description: 'Spend 15 minutes decluttering and organizing one area of your home or workspace.',
+    tips: [
+      'Focus on one small area at a time',
+      'Play music to make it more fun',
+      'Set a timer to stay focused',
+      'Put things back where they belong'
+    ],
+    estimatedTime: 15,
+    daysPerWeek: 5,
+    motivationalQuote: 'A clean space leads to a clear mind.'
   }
 ];
 

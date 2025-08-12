@@ -1,3 +1,10 @@
+export type HabitCategory = 
+  | "Health & Fitness" 
+  | "Learning" 
+  | "Mindfulness" 
+  | "Digital Wellness" 
+  | "Home";
+
 export interface Habit {
   id: string;
   name: string;
@@ -8,7 +15,7 @@ export interface Habit {
   notes?: Record<string, string>; // Daily notes
   targetDays?: number[]; // Days of week (0-6) when habit should be done
   reminderTime?: string; // HH:MM format
-  category?: string;
+  category?: HabitCategory; // <-- UPDATED
   difficulty?: "easy" | "medium" | "hard";
   isArchived?: boolean;
   priority?: "low" | "medium" | "high";
@@ -74,7 +81,7 @@ export interface HabitTemplate {
   name: string;
   emoji: string;
   color?: string;
-  category: string;
+  category: HabitCategory; // <-- UPDATED
   difficulty: "easy" | "medium" | "hard";
   description: string;
   tips: string[];

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Calendar, Target, Zap, Archive, ArchiveRestore, Save, Edit} from 'lucide-react';
-import { Habit } from '../types';
+import { Calendar, Target, Zap, Archive, ArchiveRestore, Save, Edit } from 'lucide-react';
+import { Habit, HabitCategory } from '../types';
 import { MiniHeatmap } from './MiniHeatmap';
 import { calculateHabitStats } from '../utils/habitStats';
 import { formatDate } from '../utils/dateUtils';
@@ -8,36 +8,36 @@ import { formatDate } from '../utils/dateUtils';
 interface HabitCardProps {
   habit: Habit;
   onClick: () => void;
-  onMarkToday: (e: React.MouseEvent) => void;
-  onArchive?: (e: React.MouseEvent) => void;
+  onMarkToday: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onArchive?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onSaveTemplate: () => void;
   showArchiveButton?: boolean;
-  onEdit: (habit: Habit) => void; 
+  onEdit: (habit: Habit) => void;
 }
 
-export const HabitCard: React.FC<HabitCardProps> = ({ 
-  habit, 
-  onClick, 
-  onMarkToday, 
+export const HabitCard: React.FC<HabitCardProps> = ({
+  habit,
+  onClick,
+  onMarkToday,
   onArchive,
   onSaveTemplate,
   onEdit
 }) => {
   const stats = calculateHabitStats(habit);
   const today = formatDate(new Date());
-  const todayCompleted = habit.logs[today] === true;
+  const todayCompleted = habit.logs?.[today] === true;
 
-  const handleMarkToday = (e: React.MouseEvent) => {
+  const handleMarkToday = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onMarkToday(e);
   };
 
-  const handleSaveTemplate = (e: React.MouseEvent) => {
+  const handleSaveTemplate = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onSaveTemplate();
   };
 
-  const handleArchive = (e: React.MouseEvent) => {
+  const handleArchive = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (onArchive) onArchive(e);
   };
@@ -48,6 +48,23 @@ export const HabitCard: React.FC<HabitCardProps> = ({
       case 'medium': return 'text-yellow-600 dark:text-yellow-400';
       case 'hard': return 'text-red-600 dark:text-red-400';
       default: return 'text-gray-600 dark:text-gray-400';
+    }
+  };
+
+  const getCategoryColor = (category?: HabitCategory) => {
+    switch (category) {
+      case 'Health & Fitness':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'Learning':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'Mindfulness':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'Digital Wellness':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'Home':
+        return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
     }
   };
 
@@ -80,26 +97,26 @@ export const HabitCard: React.FC<HabitCardProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="relative -right-7 flex items-center gap-2">
-          <button onClick={handleSaveTemplate} className='p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors'
-          title="Save as template">
+          <button
+            onClick={handleSaveTemplate}
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            title="Save as template"
+          >
             <Save className="w-4 h-4" />
           </button>
-          { onArchive && (
+
+          {onArchive && (
             <button
               onClick={handleArchive}
               className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               title={habit.isArchived ? 'Unarchive habit' : 'Archive habit'}
             >
-              {habit.isArchived ? (
-                <ArchiveRestore className="w-4 h-4" />
-              ) : (
-                <Archive className="w-4 h-4" /> 
-              )}
+              {habit.isArchived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
             </button>
           )}
-          
+
           <button
             onClick={handleMarkToday}
             disabled={todayCompleted}
@@ -112,33 +129,41 @@ export const HabitCard: React.FC<HabitCardProps> = ({
             {todayCompleted ? 'Done!' : 'Mark Today'}
           </button>
         </div>
-        <button onClick={(e) => {
-          e.stopPropagation();
-          onEdit(habit);
-        }} className="p-2 relative -right-8 -top-10 text-gray-400 bg-gray-200 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-700 rounded-[11px] transition-colors">
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(habit);
+          }}
+          className="p-2 relative -right-8 -top-10 text-gray-400 bg-gray-200 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-700 rounded-[11px] transition-colors"
+        >
           <Edit className="w-4 h-4" />
         </button>
       </div>
-      
+
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500 dark:text-gray-400">Last 30 days</span>
+
           {habit.category && (
-              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full ml-auto -mt-8">
+            <span className={`text-xs px-2 py-1 rounded-full ml-auto -mt-8 font-medium ${getCategoryColor(habit.category)}`}>
               {habit.category}
-              </span>
+            </span>
           )}
         </div>
+
         <div className="flex items-center justify-between">
           <MiniHeatmap habit={habit} />
-          <div className={`text-xs font-mono uppercase ${
-            habit.priority === "high"
-            ? "text-red-500"
-            : habit.priority === "medium"
-            ? "text-yellow-500"
-            : "text-green-500"
-          }`}>
+          <div
+            className={`text-xs font-mono uppercase ${
+              habit.priority === 'high'
+                ? 'text-red-500'
+                : habit.priority === 'medium'
+                ? 'text-yellow-500'
+                : 'text-green-500'
+            }`}
+          >
             <span className="relative">{`PRIORITY: ${habit.priority?.toUpperCase()}`}</span>
             <span className="absolute inset-0 blur-md opacity-50">{`PRIORITY: ${habit.priority?.toUpperCase()}`}</span>
           </div>

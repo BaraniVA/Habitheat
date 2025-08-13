@@ -12,7 +12,23 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function () {
+      return !this.googleId; // Password not required if user registered via Google
+    },
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple documents without this field
+  },
+  profilePicture: {
+    type: String,
+    default: null,
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local',
   },
   profilePic: {
     type: String,
@@ -33,6 +49,8 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 20
   }
+}, {
+  timestamps: true,
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

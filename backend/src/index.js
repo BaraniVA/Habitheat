@@ -1,15 +1,17 @@
 import dotenv from "dotenv";
+
+// Load environment variables first, before importing other modules
+dotenv.config();
+
 import connectDB from "./db/connect.js";
 import app from "./app.js";
-
-dotenv.config();
 
 // Connect to database once
 let isConnected = false;
 
 const connectToDatabase = async () => {
   if (isConnected) return;
-  
+
   try {
     await connectDB();
     isConnected = true;
@@ -28,7 +30,7 @@ export default async function handler(req, res) {
 // For local development
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 5000;
-  
+
   connectDB().then(() => {
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

@@ -1,10 +1,8 @@
 import dotenv from "dotenv";
-
-// Load environment variables first, before importing other modules
 dotenv.config();
-
 import connectDB from "./db/connect.js";
 import app from "./app.js";
+
 
 // Connect to database once
 let isConnected = false;

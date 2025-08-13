@@ -44,18 +44,17 @@ passport.use(
                 if (existingUser) {
                     // Link Google account to existing user
                     existingUser.googleId = profile.id;
-                    existingUser.profilePicture = profile.photos[0]?.value || null;
+                    existingUser.avatar = profile.photos[0]?.value || null; // <-- Use avatar
                     existingUser.authProvider = 'google';
                     await existingUser.save();
                     return done(null, existingUser);
                 }
 
-                // Create new user
                 const newUser = new User({
                     username: profile.displayName || profile.name.givenName,
                     email: profile.emails[0].value,
                     googleId: profile.id,
-                    profilePicture: profile.photos[0]?.value || null,
+                    avatar: profile.photos[0]?.value, // <-- Use avatar
                     authProvider: 'google',
                 });
 

@@ -99,7 +99,7 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
   });
 
   //const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || '/api/auth';
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
     ? `${import.meta.env.VITE_API_BASE_URL}/api/auth`
     : "/api/auth";
 

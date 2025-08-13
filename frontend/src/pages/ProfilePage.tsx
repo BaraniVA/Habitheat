@@ -36,6 +36,7 @@ interface ProfilePageProps {
   theme: Theme;
 }
 
+
 const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
   const [activeTab, setActiveTab] = useState<'achievements' | 'mood'>('achievements');
   const [userProfile, setUserProfile] = useState({
@@ -47,27 +48,123 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
     habitsCompleted: 218,
     joinDate: "January 2024"
   });
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editWorking, setEditWorking] = useState(false);
+  const [avatarWorking, setAvatarWorking] = useState(false);
+  const [flash, setFlash] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Load user data from localStorage after login
+
+  // Load user data from backend after login
   useEffect(() => {
-    const loadUserData = () => {
+    const fetchProfile = async () => {
       try {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          setUserProfile(prev => ({
-            ...prev,
-            name: userData.username || userData.name || "John Doe",
-            email: userData.email || "john.doe@example.com"
-          }));
-        }
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('Failed to fetch profile');
+        const userData = await res.json();
+        setUserProfile(prev => ({
+          ...prev,
+          name: userData.username || userData.name || "John Doe",
+          email: userData.email || "john.doe@example.com",
+          avatar: userData.avatar || prev.avatar,
+        }));
+        localStorage.setItem('user', JSON.stringify(userData));
       } catch (error) {
         console.error('Error loading user data:', error);
       }
     };
-
-    loadUserData();
+    fetchProfile();
   }, []);
+
+  // Flash message timeout
+  useEffect(() => {
+    if (flash) {
+      const t = setTimeout(() => setFlash(null), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [flash]);
+
+  // Handlers
+  const handleEditProfile = () => {
+    setEditName(userProfile.name);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateName = async () => {
+    setEditWorking(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ username: editName })
+      });
+      if (!res.ok) throw new Error('Failed to update name');
+      const updated = await res.json();
+      setUserProfile(prev => ({ ...prev, name: updated.username || updated.name }));
+      localStorage.setItem('user', JSON.stringify(updated));
+      setFlash({ type: 'success', message: 'Name updated successfully!' });
+      setShowEditModal(false);
+    } catch (err) {
+      console.error('Error updating name:', err);
+      setFlash({ type: 'error', message: 'Failed to update name.' });
+    } finally {
+      setEditWorking(false);
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // 2MB limit (in bytes)
+    const MAX_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setFlash({ type: 'error', message: 'Image size exceeds 2MB limit.' });
+      return;
+    }
+    setAvatarWorking(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64 = reader.result;
+          const token = localStorage.getItem('authToken');
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            credentials: 'include',
+            body: JSON.stringify({ avatar: base64 })
+          });
+          if (!res.ok) throw new Error('Failed to update avatar');
+          const updated = await res.json();
+          setUserProfile(prev => ({ ...prev, avatar: updated.avatar }));
+          localStorage.setItem('user', JSON.stringify(updated));
+          setFlash({ type: 'success', message: 'Avatar updated successfully!' });
+        } catch (err) {
+          console.error('Error updating avatar:', err);
+          setFlash({ type: 'error', message: 'Failed to update avatar.' });
+        } finally {
+          setAvatarWorking(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error updating avatar:', err);
+      setFlash({ type: 'error', message: 'Failed to update avatar.' });
+      setAvatarWorking(false);
+    }
+  };
 
   // Tab title
   useEffect(() => {
@@ -157,14 +254,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
                     alt="Profile"
                     className="w-32 h-32 rounded-full object-cover border-4 border-blue-100 dark:border-blue-900 shadow-lg transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-xl"
                   />
-                  <button className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 ease-in-out hover:scale-110 hover:rotate-12">
+                  <label className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 ease-in-out hover:scale-110 hover:rotate-12 cursor-pointer">
                     <Camera size={16} />
-                  </button>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={avatarWorking} />
+                  </label>
                 </div>
-                <button className="mt-4 px-4 py-2 text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 ease-in-out hover:scale-105 flex items-center gap-2 mx-auto">
+                <label className="mt-4 px-4 py-2 text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 ease-in-out hover:scale-105 flex items-center gap-2 mx-auto cursor-pointer">
                   <Camera size={16} />
-                  Change Picture
-                </button>
+                  {avatarWorking ? 'Working...' : 'Change Picture'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={avatarWorking} />
+                </label>
               </div>
 
               {/* User Info with staggered animation */}
@@ -174,9 +273,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
                 <p className="text-sm text-gray-500 dark:text-gray-400 animate-fade-in-up-delayed-2">Member since {userProfile.joinDate}</p>
               </div>
 
-              {/* Edit Profile Button with bounce animation on hover */}
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 font-medium animate-fade-in-up-delayed-3">
-                <Edit3 size={18} className="transition-transform duration-200 ease-in-out group-hover:rotate-12" />
+              {/* Edit Profile Button */}
+              <button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 font-medium animate-fade-in-up-delayed-3"
+                onClick={handleEditProfile}
+              >
+                <Edit3 size={18} className="transition-transform duration-200 ease-in-out group-hover:rotate-12"/>
                 Edit Profile
               </button>
             </div>
@@ -324,146 +426,36 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
           </div>
         </div>
       </div>
+      {/* Edit Name Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-md shadow-lg relative">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-white" onClick={() => setShowEditModal(false)}>&times;</button>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Edit Username</h2>
+            <input
+              type="text"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 mb-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              disabled={editWorking}
+            />
+            <button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
+              onClick={handleUpdateName}
+              disabled={editWorking}
+            >
+              {editWorking ? 'Working...' : 'Update Name'}
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Custom CSS for animations */}
-      <style>{`
-        /* Fade-in animation for page load */
-        .animate-fade-in {
-          animation: fadeIn 0.8s ease-in-out;
-        }
-
-        /* Slide-down animation for headers */
-        .animate-slide-down {
-          animation: slideDown 0.6s ease-out;
-        }
-
-        .animate-slide-down-delayed {
-          animation: slideDown 0.6s ease-out 0.2s both;
-        }
-
-        /* Slide-in animations for columns */
-        .animate-slide-in-left {
-          animation: slideInLeft 0.8s ease-out;
-        }
-
-        .animate-slide-in-right {
-          animation: slideInRight 0.8s ease-out 0.2s both;
-        }
-
-        /* Fade-in-up animations with delays */
-        .animate-fade-in-up {
-          animation: fadeInUp 0.6s ease-out;
-        }
-
-        .animate-fade-in-up-delayed {
-          animation: fadeInUp 0.6s ease-out 0.1s both;
-        }
-
-        .animate-fade-in-up-delayed-2 {
-          animation: fadeInUp 0.6s ease-out 0.2s both;
-        }
-
-        .animate-fade-in-up-delayed-3 {
-          animation: fadeInUp 0.6s ease-out 0.3s both;
-        }
-
-        .animate-fade-in-up-delayed-4 {
-          animation: fadeInUp 0.6s ease-out 0.4s both;
-        }
-
-        /* Slide-in-up animation for tab content */
-        .animate-slide-in-up {
-          animation: slideInUp 0.5s ease-out;
-        }
-
-        /* Tab active animation */
-        .animate-tab-active {
-          animation: tabActive 0.3s ease-out;
-        }
-
-        /* Count-up animation for statistics */
-        .animate-count-up {
-          animation: countUp 1s ease-out;
-        }
-
-        /* Keyframe definitions */
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideDown {
-          from { 
-            opacity: 0; 
-            transform: translateY(-20px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-
-        @keyframes slideInLeft {
-          from { 
-            opacity: 0; 
-            transform: translateX(-50px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-
-        @keyframes slideInRight {
-          from { 
-            opacity: 0; 
-            transform: translateX(50px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-
-        @keyframes fadeInUp {
-          from { 
-            opacity: 0; 
-            transform: translateY(30px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-
-        @keyframes slideInUp {
-          from { 
-            opacity: 0; 
-            transform: translateY(20px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-
-        @keyframes tabActive {
-          0% { transform: scale(0.95); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-
-        @keyframes countUp {
-          from { 
-            opacity: 0; 
-            transform: scale(0.5); 
-          }
-          to { 
-            opacity: 1; 
-            transform: scale(1); 
-          }
-        }
-      `}</style>
+      {/* Flash Message */}
+      {flash && (
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-semibold ${flash.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {flash.message}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,12 +1,16 @@
 import express from "express";
 import passport from 'passport';
-import { login, signup, googleAuthSuccess, googleAuthFailure } from "../controllers/authController.js";
+import { login, signup, getProfile, updateProfile, googleAuthSuccess, googleAuthFailure } from "../controllers/authController.js";
+import authenticateJWT from "../middleware/authenticateJWT.js";
+
 
 const authRoutes = express.Router();
 
-// Regular auth routes
+
 authRoutes.post("/login", login);
 authRoutes.post("/signup", signup);
+authRoutes.get("/profile", authenticateJWT, getProfile);
+authRoutes.put("/profile", authenticateJWT, updateProfile);
 
 // Google OAuth routes
 authRoutes.get("/google",

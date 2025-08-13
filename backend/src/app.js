@@ -1,17 +1,27 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import session from "express-session";
 import authRoutes from "./routes/auth.js";
-import errorHandler from "./middleware/errorHandler.js";
+import cookieParser from "cookie-parser";
+import errorHandler from './middleware/errorHandler.js';
 import "./config/passport.js"; // Import passport configuration
+import passport from 'passport';
 
 const app = express();
 
-// CORS configuration
+
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials: true,
+  origin: process.env.FRONTEND_URL,
+  credentials: true
 }));
+app.options(/.*/, cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
+
 
 // Session configuration (required for Passport)
 app.use(session({
@@ -24,15 +34,22 @@ app.use(session({
     }
 }));
 
-// Initialize Passport
-import passport from 'passport';
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(express.json());
 
-// API routes
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+
+app.get('/test-cors', (req, res) => {
+  res.json({ message: 'CORS test' });
+});
+
 app.use("/api/auth", authRoutes);
+
+// Error handling
 
 app.use(errorHandler);
 

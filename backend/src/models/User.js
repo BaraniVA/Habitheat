@@ -16,14 +16,13 @@ const userSchema = new mongoose.Schema({
       return !this.googleId; // Password not required if user registered via Google
     },
   },
+  avatar: {
+    type: String,
+  },
   googleId: {
     type: String,
     unique: true,
     sparse: true, // Allows multiple documents without this field
-  },
-  profilePicture: {
-    type: String,
-    default: null,
   },
   authProvider: {
     type: String,

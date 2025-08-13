@@ -145,6 +145,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup, onLoginSuccess }) => {
         {
           email: formData.email,
           password: formData.password,
+        }, {
+          withCredentials: true
         }
       );
 

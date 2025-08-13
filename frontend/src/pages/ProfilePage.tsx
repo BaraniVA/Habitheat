@@ -97,9 +97,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
   const handleUpdateName = async () => {
     setEditWorking(true);
     try {
-  // ...existing code...
       const token = localStorage.getItem('authToken');
-  // ...existing code...
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
@@ -109,10 +107,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
         credentials: 'include',
         body: JSON.stringify({ username: editName })
       });
-  // ...existing code...
       if (!res.ok) throw new Error('Failed to update name');
       const updated = await res.json();
-  // ...existing code...
       setUserProfile(prev => ({ ...prev, name: updated.username || updated.name }));
       localStorage.setItem('user', JSON.stringify(updated));
       setFlash({ type: 'success', message: 'Name updated successfully!' });
@@ -139,10 +135,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         try {
-          // ...existing code...
           const base64 = reader.result;
           const token = localStorage.getItem('authToken');
-          // ...existing code...
           const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
             method: 'PUT',
             headers: {
@@ -152,10 +146,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ theme }) => {
             credentials: 'include',
             body: JSON.stringify({ avatar: base64 })
           });
-          // ...existing code...
           if (!res.ok) throw new Error('Failed to update avatar');
           const updated = await res.json();
-          // ...existing code...
           setUserProfile(prev => ({ ...prev, avatar: updated.avatar }));
           localStorage.setItem('user', JSON.stringify(updated));
           setFlash({ type: 'success', message: 'Avatar updated successfully!' });

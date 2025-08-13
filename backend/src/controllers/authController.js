@@ -20,6 +20,7 @@ export const signup = async (req, res, next) => {
       username,
       email,
       password: hashedPassword,
+      authProvider: 'local',
     });
 
     await newUser.save();
@@ -33,7 +34,7 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    console.log('Login request body:', req.body);
+    
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -43,6 +44,13 @@ export const login = async (req, res, next) => {
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if user registered with Google OAuth
+    if (existingUser.authProvider === 'google' && !existingUser.password) {
+      return res.status(400).json({
+        message: "This account was created with Google. Please use Google Sign-In."
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -76,6 +84,8 @@ export const login = async (req, res, next) => {
         username: existingUser.username,
         email: existingUser.email,
         avatar: existingUser.avatar || null,
+        profilePicture: existingUser.profilePicture,
+        authProvider: existingUser.authProvider,
       },
     });
   } catch (error) {
@@ -112,4 +122,38 @@ export const updateProfile = async (req, res) => {
     console.error('Error in updateProfile:', err);
     res.status(500).json({ message: 'Update failed' });
   }
+};
+
+export const googleAuthSuccess = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+    }
+
+    const token = jwt.sign(
+      { id: req.user._id },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    // Redirect to frontend with token and avatar
+    const redirectUrl = `${process.env.FRONTEND_URL}/auth/success?token=${token}&user=${encodeURIComponent(JSON.stringify({
+      username: req.user.username,
+      email: req.user.email,
+      avatar: req.user.avatar, // <-- Use avatar here
+      authProvider: req.user.authProvider,
+    }))}`;
+
+    return res.redirect(redirectUrl);
+  } catch (error) {
+    console.error("Error in Google auth success:", error);
+    return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_error`);
+  }
+};
+
+// Google OAuth failure handler
+export const googleAuthFailure = (req, res) => {
+  return res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
 };

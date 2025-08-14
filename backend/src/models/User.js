@@ -15,15 +15,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  auth:{
+  authProvider:{
     type: String,
-    enum: ["local", "google"],
+    enum: ['local', 'google'],
+    default: 'local',
   },
   password: {
     type: String,
-    required: true,
+    required: function() {
+      return this.authProvider === 'local';
+    }
   },
-  profilePhoto:{
+  profilePicture:{
     type:String,
     default: "https://www.gravatar.com/avatar/?d=mp",
   },

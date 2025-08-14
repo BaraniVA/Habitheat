@@ -1,67 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import { Header } from './components/Header';
-import { Dashboard } from './pages/Dashboard';
-import { HabitDetail } from './components/HabitDetail';
-import { AddHabitModal } from './components/AddHabitModal';
-import { SaveAsTemplateModal } from './components/SaveAsTemplateModal';
-import { UpdateHabitModal } from './components/UpdateHabitModal';
-import { InsightsView } from './pages/InsightsView';
-import { AchievementsView } from './pages/AchievementsView';
-import { ChallengesView } from './pages/ChallengesView';
-import { MoodTracker } from './pages/MoodTracker';
-import { HabitTemplatesView } from './pages/HabitTemplatesView';
-import { AchievementNotification } from './components/AchievementNotification';
-import NotFound from './pages/NotFound';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import { useHabits } from './hooks/useHabits';
-import { useTheme } from './hooks/useTheme';
-import { Habit, View, HabitTemplate } from './types';
-import ProfilePage from './pages/ProfilePage';
-import { Footer } from './components/Footer';
-import { loadCustomTemplates, saveCustomTemplates } from './utils/storage';
+import React, { useState, useEffect } from "react";
+import { Header } from "./components/Header";
+import { Dashboard } from "./pages/Dashboard";
+import { HabitDetail } from "./components/HabitDetail";
+import { AddHabitModal } from "./components/AddHabitModal";
+import { SaveAsTemplateModal } from "./components/SaveAsTemplateModal";
+import { UpdateHabitModal } from "./components/UpdateHabitModal";
+import { InsightsView } from "./pages/InsightsView";
+import { AchievementsView } from "./pages/AchievementsView";
+import { ChallengesView } from "./pages/ChallengesView";
+import { MoodTracker } from "./pages/MoodTracker";
+import { HabitTemplatesView } from "./pages/HabitTemplatesView";
+import { AchievementNotification } from "./components/AchievementNotification";
+import NotFound from "./pages/NotFound";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
+import { useHabits } from "./hooks/useHabits";
+import { useTheme } from "./hooks/useTheme";
+import { Habit, View, HabitTemplate } from "./types";
+import ProfilePage from "./pages/ProfilePage";
+import { Footer } from "./components/Footer";
+import { loadCustomTemplates, saveCustomTemplates } from "./utils/storage";
+import {
+  handleOAuthCallback,
+  storeAuthData,
+  getStoredAuthData,
+  clearAuthData,
+} from "./utils/auth";
 
 function App() {
   const { theme, toggleTheme } = useTheme();
-  const { 
-    habits, 
-    achievements, 
+  const {
+    habits,
+    achievements,
     newAchievements,
     challenges,
     moods,
     addHabit,
     addHabitFromTemplate,
-    deleteHabit, 
+    deleteHabit,
     archiveHabit,
     updateHabit,
-    toggleHabitCompletion, 
+    toggleHabitCompletion,
     markTodayComplete,
     addNote,
     startChallenge,
     completeChallenge,
     addMood,
-    dismissAchievement
+    dismissAchievement,
   } = useHabits();
-  
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+
+  const [currentView, setCurrentView] = useState<View>("dashboard");
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [habitToSave, setHabitToSave] = useState<Habit | null>(null);
   const [templates, setTemplates] = useState<HabitTemplate[]>([]);
-  
+
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+  const [authView, setAuthView] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Check authentication status on app load
   useEffect(() => {
     const checkAuthStatus = () => {
-      const token = localStorage.getItem('authToken');
-      const user = localStorage.getItem('user');
-      
+      // Check for OAuth success parameters in URL first
+      const oauthResult = handleOAuthCallback();
+
+      if (oauthResult.error) {
+        console.error("OAuth error:", oauthResult.error);
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        // Clean up URL params
+        window.history.replaceState({}, "", "/");
+        return;
+      }
+
+      if (oauthResult.token && oauthResult.user) {
+        // Store OAuth authentication data
+        storeAuthData(oauthResult.token, oauthResult.user);
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        // Clean up URL params
+        window.history.replaceState({}, "", "/");
+        return;
+      }
+
+      // Check for existing stored authentication
+      const { token, user } = getStoredAuthData();
       if (token && user) {
         setIsAuthenticated(true);
       } else {
@@ -75,10 +102,9 @@ function App() {
 
   // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    clearAuthData();
     setIsAuthenticated(false);
-    setCurrentView('dashboard');
+    setCurrentView("dashboard");
     setSelectedHabit(null);
   };
 
@@ -89,32 +115,32 @@ function App() {
     const handleRouting = () => {
       const path = window.location.pathname;
       const validRoutes = [
-        '/',
-        '/dashboard',
-        '/insights', 
-        '/achievements',
-        '/challenges',
-        '/mood',
-        '/templates',
-        '/profile'
+        "/",
+        "/dashboard",
+        "/insights",
+        "/achievements",
+        "/challenges",
+        "/mood",
+        "/templates",
+        "/profile",
       ];
 
-      if (path === '/' || path === '/dashboard') {
-        setCurrentView('dashboard');
-      } else if (path === '/insights') {
-        setCurrentView('insights');
-      } else if (path === '/achievements') {
-        setCurrentView('achievements');
-      } else if (path === '/challenges') {
-        setCurrentView('challenges');
-      } else if (path === '/mood') {
-        setCurrentView('mood');
-      } else if (path === '/templates') {
-        setCurrentView('templates');
-      } else if (path === '/profile') {
-        setCurrentView('profile');
+      if (path === "/" || path === "/dashboard") {
+        setCurrentView("dashboard");
+      } else if (path === "/insights") {
+        setCurrentView("insights");
+      } else if (path === "/achievements") {
+        setCurrentView("achievements");
+      } else if (path === "/challenges") {
+        setCurrentView("challenges");
+      } else if (path === "/mood") {
+        setCurrentView("mood");
+      } else if (path === "/templates") {
+        setCurrentView("templates");
+      } else if (path === "/profile") {
+        setCurrentView("profile");
       } else if (!validRoutes.includes(path)) {
-        setCurrentView('not-found');
+        setCurrentView("not-found");
       }
     };
 
@@ -124,49 +150,67 @@ function App() {
       handleRouting();
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [isAuthenticated]);
 
-  const navigateToView = (view: Exclude<View, 'not-found' | 'habit-detail' | 'add-habit' | 'social'>) => {
+  const navigateToView = (
+    view: Exclude<View, "not-found" | "habit-detail" | "add-habit" | "social">
+  ) => {
     const routes: Record<string, string> = {
-      dashboard: '/',
-      insights: '/insights',
-      achievements: '/achievements', 
-      challenges: '/challenges',
-      mood: '/mood',
-      templates: '/templates',
-      profile: '/profile'
+      dashboard: "/",
+      insights: "/insights",
+      achievements: "/achievements",
+      challenges: "/challenges",
+      mood: "/mood",
+      templates: "/templates",
+      profile: "/profile",
     };
-    
+
     const path = routes[view];
     if (path) {
-      window.history.pushState({}, '', path);
+      window.history.pushState({}, "", path);
       setCurrentView(view);
     }
   };
 
-  const getHeaderView = (view: View): 'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' | 'profile' => {
-    if (['not-found', 'habit-detail', 'add-habit', 'social'].includes(view)) {
-      return 'dashboard';
+  const getHeaderView = (
+    view: View
+  ):
+    | "dashboard"
+    | "insights"
+    | "achievements"
+    | "challenges"
+    | "mood"
+    | "templates"
+    | "profile" => {
+    if (["not-found", "habit-detail", "add-habit", "social"].includes(view)) {
+      return "dashboard";
     }
-    return view as 'dashboard' | 'insights' | 'achievements' | 'challenges' | 'mood' | 'templates' | 'profile';
+    return view as
+      | "dashboard"
+      | "insights"
+      | "achievements"
+      | "challenges"
+      | "mood"
+      | "templates"
+      | "profile";
   };
 
   const handleNavigateHome = () => {
-    window.history.pushState({}, '', '/');
-    setCurrentView('dashboard');
+    window.history.pushState({}, "", "/");
+    setCurrentView("dashboard");
     setSelectedHabit(null);
   };
 
   const handleHabitClick = (habit: Habit) => {
     setSelectedHabit(habit);
-    setCurrentView('habit-detail');
+    setCurrentView("habit-detail");
   };
 
   const handleBackToDashboard = () => {
-    window.history.pushState({}, '', '/');
-    setCurrentView('dashboard');
+    window.history.pushState({}, "", "/");
+    setCurrentView("dashboard");
     setSelectedHabit(null);
   };
 
@@ -174,15 +218,15 @@ function App() {
     setIsAddModalOpen(true);
   };
 
-  const handleHabitAdded = (habitData: { 
-    name: string; 
-    emoji: string; 
+  const handleHabitAdded = (habitData: {
+    name: string;
+    emoji: string;
     color: string;
     category?: string;
-    difficulty?: 'easy' | 'medium' | 'hard';
+    difficulty?: "easy" | "medium" | "hard";
     targetDays?: number[];
     reminderTime?: string;
-    priority?: 'low' | 'medium' | 'high';
+    priority?: "low" | "medium" | "high";
     estimatedTime?: number;
     motivationalQuote?: string;
   }) => {
@@ -201,7 +245,7 @@ function App() {
     }
   };
 
-  const handleSaveTemplate = (templateData: Omit<HabitTemplate, 'id'>) => {
+  const handleSaveTemplate = (templateData: Omit<HabitTemplate, "id">) => {
     const newTemplate: HabitTemplate = {
       ...templateData,
       id: crypto.randomUUID(),
@@ -220,7 +264,7 @@ function App() {
   }, []);
 
   const addTemplate = (template: HabitTemplate) => {
-    setTemplates(prev => {
+    setTemplates((prev) => {
       const updated = [...prev, template];
       saveCustomTemplates(updated);
       return updated;
@@ -228,21 +272,23 @@ function App() {
   };
 
   const handleDeleteTemplate = (id: string) => {
-    const updated = templates.filter(t => t.id !== id);
+    const updated = templates.filter((t) => t.id !== id);
     setTemplates(updated);
-    localStorage.setItem('habit-heat-custom-templates', JSON.stringify(updated));
+    localStorage.setItem(
+      "habit-heat-custom-templates",
+      JSON.stringify(updated)
+    );
   };
-
 
   const handleArchiveHabit = (habitId?: string) => {
     const targetHabitId = habitId || selectedHabit?.id;
     if (targetHabitId) {
-      const habit = habits.find(h => h.id === targetHabitId);
-      if(!habit) return;
+      const habit = habits.find((h) => h.id === targetHabitId);
+      if (!habit) return;
 
       archiveHabit(targetHabitId, !habit.isArchived);
 
-      if(selectedHabit && targetHabitId === selectedHabit.id) {
+      if (selectedHabit && targetHabitId === selectedHabit.id) {
         handleBackToDashboard();
       }
     }
@@ -252,7 +298,7 @@ function App() {
     if (selectedHabit) {
       toggleHabitCompletion(selectedHabit.id, date);
       // Update the selected habit to reflect changes
-      const updatedHabit = habits.find(h => h.id === selectedHabit.id);
+      const updatedHabit = habits.find((h) => h.id === selectedHabit.id);
       if (updatedHabit) {
         setSelectedHabit(updatedHabit);
       }
@@ -265,7 +311,7 @@ function App() {
       markTodayComplete(targetHabitId);
       // Update selected habit if it's the current one
       if (selectedHabit && targetHabitId === selectedHabit.id) {
-        const updatedHabit = habits.find(h => h.id === selectedHabit.id);
+        const updatedHabit = habits.find((h) => h.id === selectedHabit.id);
         if (updatedHabit) {
           setSelectedHabit(updatedHabit);
         }
@@ -277,7 +323,7 @@ function App() {
     if (selectedHabit) {
       addNote(selectedHabit.id, date, note);
       // Update the selected habit to reflect changes
-      const updatedHabit = habits.find(h => h.id === selectedHabit.id);
+      const updatedHabit = habits.find((h) => h.id === selectedHabit.id);
       if (updatedHabit) {
         setSelectedHabit(updatedHabit);
       }
@@ -287,13 +333,13 @@ function App() {
   // Handle successful login
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    setCurrentView('dashboard');
+    setCurrentView("dashboard");
   };
 
   // Update selected habit when habits change
   React.useEffect(() => {
     if (selectedHabit) {
-      const updatedHabit = habits.find(h => h.id === selectedHabit.id);
+      const updatedHabit = habits.find((h) => h.id === selectedHabit.id);
       if (updatedHabit) {
         setSelectedHabit(updatedHabit);
       }
@@ -316,15 +362,13 @@ function App() {
   if (!isAuthenticated) {
     return (
       <>
-        {authView === 'login' ? (
-          <Login 
-            onSwitchToSignup={() => setAuthView('signup')}
+        {authView === "login" ? (
+          <Login
+            onSwitchToSignup={() => setAuthView("signup")}
             onLoginSuccess={handleLoginSuccess}
           />
         ) : (
-          <Signup 
-            onSwitchToLogin={() => setAuthView('login')}
-          />
+          <Signup onSwitchToLogin={() => setAuthView("login")} />
         )}
       </>
     );
@@ -332,19 +376,19 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Header 
-        theme={theme} 
+      <Header
+        theme={theme}
         currentView={getHeaderView(currentView)}
         onThemeToggle={toggleTheme}
         onViewChange={(view) => navigateToView(view)}
         onLogout={handleLogout}
       />
-      
-      {currentView === 'not-found' && (
+
+      {currentView === "not-found" && (
         <NotFound onNavigateHome={handleNavigateHome} />
       )}
 
-      {currentView === 'dashboard' && (
+      {currentView === "dashboard" && (
         <>
           <Dashboard
             habits={habits}
@@ -368,7 +412,6 @@ function App() {
             }}
           />
         </>
-        
       )}
 
       {habitToSave && (
@@ -381,17 +424,14 @@ function App() {
         />
       )}
 
+      {currentView === "insights" && <InsightsView habits={habits} />}
 
-      {currentView === 'insights' && (
-        <InsightsView habits={habits} />
+      {currentView === "achievements" && (
+        <AchievementsView achievements={achievements} allHabits={habits} />
       )}
 
-      {currentView === 'achievements' && (
-        <AchievementsView achievements={achievements} />
-      )}
-
-      {currentView === 'challenges' && (
-        <ChallengesView 
+      {currentView === "challenges" && (
+        <ChallengesView
           habits={habits}
           challenges={challenges}
           onStartChallenge={startChallenge}
@@ -399,14 +439,11 @@ function App() {
         />
       )}
 
-      {currentView === 'mood' && (
-        <MoodTracker 
-          moods={moods}
-          onAddMood={addMood}
-        />
+      {currentView === "mood" && (
+        <MoodTracker moods={moods} onAddMood={addMood} />
       )}
 
-      {currentView === 'templates' && (
+      {currentView === "templates" && (
         <HabitTemplatesView
           onBack={handleBackToDashboard}
           onUseTemplate={handleUseTemplate}
@@ -415,7 +452,7 @@ function App() {
         />
       )}
 
-      {currentView === 'habit-detail' && selectedHabit && (
+      {currentView === "habit-detail" && selectedHabit && (
         <HabitDetail
           habit={selectedHabit}
           onBack={handleBackToDashboard}
@@ -427,9 +464,7 @@ function App() {
         />
       )}
 
-      {currentView === 'profile' && (
-        <ProfilePage theme={theme} />
-      )}
+      {currentView === "profile" && <ProfilePage theme={theme} />}
 
       <AddHabitModal
         isOpen={isAddModalOpen}
@@ -442,9 +477,8 @@ function App() {
         onDismiss={dismissAchievement}
       />
 
-      <Footer /> 
+      <Footer />
     </div>
-
   );
 }
 

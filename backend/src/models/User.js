@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
       return this.authProvider === 'local';
     }
   },
+   googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple documents without this field
+  },
   profilePicture:{
     type:String,
     default: "https://www.gravatar.com/avatar/?d=mp",
@@ -67,7 +72,26 @@ createdAt: {
   updatedAt: {
     type: Date,
     default: Date.now,  
+    required: function () {
+      return !this.googleId; // Password not required if user registered via Google
+    },
   },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple documents without this field
+  },
+  profilePicture: {
+    type: String,
+    default: null,
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local',
+  },
+}, {
+  timestamps: true,
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

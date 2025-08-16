@@ -124,20 +124,13 @@ Navigate to `http://localhost:5173` to start using Habit Heat!
 project/                 # Frontend React application
 ├── src/
 │   ├── components/          # React components
-│   │   ├── Dashboard.tsx           # Main dashboard view
 │   │   ├── HabitCard.tsx          # Individual habit display
 │   │   ├── HabitDetail.tsx        # Detailed habit view
 │   │   ├── AddHabitModal.tsx      # Habit creation modal
-│   │   ├── InsightsView.tsx       # Analytics and insights
-│   │   ├── AchievementsView.tsx   # Achievement system
-│   │   ├── ChallengesView.tsx     # Challenge system
-│   │   ├── MoodTracker.tsx        # Mood logging
-│   │   ├── HabitTemplatesView.tsx # Pre-made templates
 │   │   ├── Login.tsx              # User authentication login
 │   │   ├── Signup.tsx             # User registration
 │   │   ├── Header.tsx             # Navigation header with logout
 │   │   ├── Footer.tsx             # Application footer
-│   │   ├── ProfilePage.tsx        # User profile management
 │   │   ├── Heatmap.tsx            # Progress visualization
 │   │   ├── MiniHeatmap.tsx        # Compact progress view
 │   │   ├── HabitStats.tsx         # Habit statistics display
@@ -145,6 +138,15 @@ project/                 # Frontend React application
 │   │   ├── SelfCareTip.tsx        # Wellness tips
 │   │   ├── AchievementNotification.tsx # Achievement alerts
 │   │   ├── WidgetSettingsModal.tsx # Widget configuration
+|   |   |-- AdvancedFilterModal.tsx # Filter Implementation
+|   |   |-- AuthDebugComponent.tsx  # Authorization Debugging
+|   |   |-- FilterSummary.tsx       # Summary for all Filters
+|   |   |-- LandingPage.tsx         # Component for Landing Page
+|   |   |-- OAuthSuccess.tsx        # Component for Success state in OAuth
+|   |   |-- QuickActions.tsx        # Quick Actions Tab
+|   |   |-- TimeInput.tsx           # Input Component for Profile Page
+|   |   |-- UpdateHabitModal.tsx    # Update Habit Component
+|   |   |-- SaveAsTemplateModal.tsx # Save Existing Habit as Template
 │   │   └── widgets/               # Dashboard widgets
 │   │       ├── CurrentStreakWidget.tsx      # Streak display
 │   │       ├── DailyCompletionRateWidget.tsx # Daily progress
@@ -169,11 +171,14 @@ project/                 # Frontend React application
 │   │   ├── achievements.ts        # Achievement logic
 │   │   ├── challenges.ts          # Challenge system
 │   │   ├── insights.ts            # Analytics generation
+|   |   |-- auth.ts                # Manage Authentication flow
+|   |   |-- advancedFilter.ts      # Manage Advance Filtering
 │   │   ├── habitTemplates.ts      # Pre-made habit templates
 │   │   ├── motivationalQuotes.ts  # Inspirational quotes
 │   │   └── dateUtils.ts           # Date manipulation utilities
 │   ├── App.tsx             # Main application component
 │   ├── main.tsx            # Application entry point
+|   |-- vite-env.d.ts       # Declaration File for vite env
 │   └── index.css           # Global styles
 ├── public/
 │   └── fevicon.png             # Application favicon
@@ -186,11 +191,17 @@ project/                 # Frontend React application
 ```
 backend/
 ├── src/
+|   |-- config/
+|   |   └── passport.js          # Auth Integration using passport.js 
 │   ├── controllers/
 │   │   └── authController.js    # Authentication business logic
 │   ├── db/
 │   │   └── connect.js          # Database connection configuration
+|   |-- lib/
+|   |   └── cloudinary.js       # Configuration for cloudinary
+|   |   └── utils.js            # JWT token creation file
 │   ├── middleware/
+|   |   └── authMiddleware.js   # Middleware for Authentication flow
 │   │   └── errorHandler.js     # Global error handling middleware
 │   ├── models/
 │   │   └── User.js             # User schema and model

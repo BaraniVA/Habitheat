@@ -1,3 +1,4 @@
+import { Toaster } from 'react-hot-toast';
 import React, { useState, useEffect } from "react";
 import { Header } from "./components/Header";
 import { Dashboard } from "./pages/Dashboard";
@@ -362,9 +363,10 @@ function App() {
   if (!isAuthenticated) {
     return (
       <>
-        {authView === "login" ? (
-          <Login
-            onSwitchToSignup={() => setAuthView("signup")}
+        <Toaster />
+        {authView === 'login' ? (
+          <Login 
+            onSwitchToSignup={() => setAuthView('signup')}
             onLoginSuccess={handleLoginSuccess}
           />
         ) : (
@@ -376,8 +378,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Header
-        theme={theme}
+
+      <Toaster />
+      <Header 
+        theme={theme} 
         currentView={getHeaderView(currentView)}
         onThemeToggle={toggleTheme}
         onViewChange={(view) => navigateToView(view)}
@@ -430,8 +434,13 @@ function App() {
         <AchievementsView achievements={achievements} allHabits={habits} />
       )}
 
-      {currentView === "challenges" && (
-        <ChallengesView
+
+      {currentView === 'achievements' && (
+        <AchievementsView achievements={achievements} allHabits={habits} />
+      )}
+
+      {currentView === 'challenges' && (
+        <ChallengesView 
           habits={habits}
           challenges={challenges}
           onStartChallenge={startChallenge}

@@ -2,7 +2,7 @@ export interface Habit {
   id: string;
   name: string;
   emoji: string;
-  color: string;
+  color: string | undefined;
   createdAt: string;
   logs: Record<string, boolean>; // YYYY-MM-DD -> completion status
   notes?: Record<string, string>; // Daily notes

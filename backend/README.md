@@ -117,7 +117,10 @@ curl -X POST http://localhost:5000/api/auth/login \
 | `PORT`                 | Server port number          | `5000`                                           |
 | `MONGODB_URI`          | MongoDB connection string   | `your-mongodb-atlas-uri`                         |
 | `JWT_SECRET_KEY`       | Secret key for JWT signing  | `your-secret-key`                                |
-| `DB_NAME`              | Database name               | `habitheat`                                      |
+| `DB_NAME`              | Database name               | `habitheat`                                      |  
+| `CLOUDINARY_CLOUD_NAME`              | Cloud name               | `your-cloudinary-cloud-name`                                      |  
+| `CLOUDINARY_API_KEY`              | Cloud API Key               | `your-cloudinary-api-key`                                      |  
+| `CLOUDINARY_API_SECRET`              | Cloud API Secret               | `your-cloudinary-api-secret`                                      |  
 | `GOOGLE_CLIENT_ID`     | Google OAuth client ID      | `your-google-client-id`                          |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret  | `your-google-client-secret`                      |
 | `GOOGLE_CALLBACK_URL`  | Google OAuth callback URL   | `http://localhost:5000/api/auth/google/callback` |

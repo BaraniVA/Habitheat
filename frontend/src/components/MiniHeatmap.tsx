@@ -27,7 +27,7 @@ export const MiniHeatmap: React.FC<MiniHeatmapProps> = ({ habit, className = '' 
       {last30Days.map((date) => (
         <div
           key={formatDate(date)}
-          className={`w-2 h-2 rounded-sm ${getCellColor(date)} transition-colors`}
+          className={`w-[6px] h-1 rounded-sm ${getCellColor(date)} transition-colors`}
           title={formatDate(date)}
         />
       ))}

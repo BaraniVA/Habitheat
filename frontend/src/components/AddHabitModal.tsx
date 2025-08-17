@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Smile, Clock, Flag } from 'lucide-react';
+import { X, Clock, Flag } from 'lucide-react';
 
 interface AddHabitModalProps {
   isOpen: boolean;
@@ -276,7 +276,7 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({ isOpen, onClose, o
                   key={value}
                   type="button"
                   onClick={() => toggleTargetDay(value)}
-                  className={`px-3 py-2 rounded-lg border-2 transition-all text-sm ${
+                  className={`px-0 py-2 rounded-lg border-2 transition-all text-sm ${
                     targetDays.includes(value)
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                       : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'

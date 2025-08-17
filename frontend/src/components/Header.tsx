@@ -144,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
                         : 'text-gray-600 dark:text-gray-400'
                     }`} />
                   </span>
-                  <span className="hidden md:inline dark:text-white whitespace-nowrap transition-colors duration-300">{label}</span>
+                  <span className="hidden md:inline whitespace-nowrap transition-colors duration-300 dark:text-white">{label}</span>
                   {/* Active indicator bar */}
                   <div className={`w-full h-1 rounded-full transition-all duration-300 ease-in-out ${
                     currentView === view
@@ -245,9 +245,9 @@ export const Header: React.FC<HeaderProps> = ({
                       style={{ animationDelay: `${idx * 100}ms` }}
                     >
                       <span className={shakeIndex === idx ? 'shake-anim' : undefined}>
-                        <Icon className="w-5 h-5 flex-shrink-0 transition-all duration-300 ease-in-out hover:rotate-12" />
+                        <Icon className="w-5 h-5 flex-shrink-0 transition-all duration-300 ease-in-out hover:rotate-12 text-gray-600 dark:text-gray-300" />
                       </span>
-                      <span className="text-base transition-colors duration-300">{label}</span>
+                      <span className="text-base transition-colors duration-300 dark:text-white">{label}</span>
                       <div className={`ml-auto w-2 h-2 rounded-full transition-all duration-300 ease-in-out ${
                         currentView === view
                           ? 'bg-orange-500 dark:bg-blue-500 animate-pulse'

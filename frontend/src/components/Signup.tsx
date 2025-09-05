@@ -82,6 +82,34 @@ interface SignupProps {
   onSwitchToLogin: () => void;
 }
 
+// Helper: Check password strength
+const calculateStrength = (password: string) => {
+let score = 0;
+if (password.length >= 6) score++;
+if (/[A-Z]/.test(password)) score++;
+if (/[0-9]/.test(password)) score++;
+if (/[^A-Za-z0-9]/.test(password)) score++;
+
+
+let label = "Weak";
+let color = "bg-red-500";
+
+
+if (score === 2) {
+label = "Fair";
+color = "bg-yellow-400";
+} else if (score === 3) {
+label = "Good";
+color = "bg-blue-500";
+} else if (score === 4) {
+label = "Strong";
+color = "bg-green-500";
+}
+
+
+return { score, label, color };
+};
+
 const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
@@ -97,6 +125,8 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
     password: "",
     confirmPassword: "",
   });
+
+  const passwordStrength = calculateStrength(formData.password);
 
   //const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || '/api/auth';
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -348,7 +378,31 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
                     )}
                   </button>
                 </div>
-              </div>
+
+                {/* Strength Bar */}
+                {formData.password && (
+                <div className="mt-2">
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                className={`h-2 ${passwordStrength.color}`}
+                style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
+                ></div>
+                </div>
+                <p className="text-xs mt-1 text-gray-600">Strength: {passwordStrength.label}</p>
+                </div>
+                )}
+
+
+                {/* Rules */}
+                {formData.password && (
+                <ul className="mt-2 text-xs text-gray-500 space-y-1">
+                <li className={formData.password.length >= 6 ? "text-green-600" : ""}>• At least 6 characters</li>
+                <li className={/[A-Z]/.test(formData.password) ? "text-green-600" : ""}>• One uppercase letter</li>
+                <li className={/[0-9]/.test(formData.password) ? "text-green-600" : ""}>• One number</li>
+                <li className={/[^A-Za-z0-9]/.test(formData.password) ? "text-green-600" : ""}>• One special character</li>
+                </ul>
+                )}
+                </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -364,7 +418,7 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
                     className="w-full px-3 py-2.5 sm:px-4 sm:py-3 pr-10 sm:pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm sm:text-base"
                     placeholder="Confirm your password"
                     disabled={isLoading}
-                  />
+                  />  
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}

@@ -2,6 +2,28 @@
 
 A modern, feature-rich habit tracking application built with React and TypeScript. Track your daily habits, build streaks, earn achievements, and maintain consistency with powerful analytics and gamification features.
 
+
+## 📋 Table of Contents
+
+<details>
+<summary><strong>🔍 Click to expand navigation</strong></summary>
+
+- [✨ Features](#-features)
+- [🚀 Getting Started](#-getting-started)
+- [📱 Usage](#-usage)
+- [🏗️ Tech Stack](#️-tech-stack)
+- [📁 Project Structure](#-project-structure)
+- [🎯 Key Components](#-key-components)
+- [🔒 Data & Privacy](#-data--privacy)
+- [🌟 Features in Detail](#-features-in-detail)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+- [📧 Support](#-support)
+
+</details>
+
+
 ## ✨ Features
 
 ### 🎯 Core Habit Tracking
@@ -327,3 +349,5 @@ If you encounter any issues or have questions:
 <p align="center">
   <a href="#top">⬆️ Back to Top</a>
 </p>
+
+---

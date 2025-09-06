@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import session from "express-session";
@@ -5,8 +7,13 @@ import authRoutes from "./routes/auth.js";
 import errorHandler from "./middleware/errorHandler.js";
 import "./config/passport.js"; // Import passport configuration
 import passport from 'passport';
+import rateLimit from "express-rate-limit";
 
 const app = express();
+const globalRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));

@@ -16,7 +16,6 @@ const OAuthSuccess: React.FC<OAuthSuccessProps> = ({ onLoginSuccess }) => {
     const error = searchParams.get("error");
 
     if (error) {
-      // Handle error cases
       console.error("OAuth error:", error);
       navigate("/login?error=oauth_failed");
       return;
@@ -26,8 +25,8 @@ const OAuthSuccess: React.FC<OAuthSuccessProps> = ({ onLoginSuccess }) => {
       try {
         const user = JSON.parse(decodeURIComponent(userString));
 
-        // Store token and user data
-        localStorage.setItem("authToken", token);
+        // Store token and user data for authenticated requests
+        localStorage.setItem("authToken", token); // <-- This is critical!
         localStorage.setItem("user", JSON.stringify(user));
 
         // Call success callback or navigate to dashboard

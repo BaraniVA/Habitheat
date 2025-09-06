@@ -9,9 +9,12 @@ export const protectRoute = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     // console.log(decoded);
-    req.user = decoded;
+    req.user ={
+      userId: decoded.userId || decoded.id,
+      ...decoded
+    } ;
     next();
   } catch (err) {
     console.log(err.message);

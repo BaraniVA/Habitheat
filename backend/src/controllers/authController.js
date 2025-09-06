@@ -64,14 +64,13 @@ export const login = async (req, res, next) => {
 
     const token = generateToken(existingUser._id, res);
 
-
     return res.status(200).json({
       message: "Login Successful",
       token,
       user: {
         username: existingUser.username,
         email: existingUser.email,
-        profilePicture: existingUser.profilePicture,
+        profilePic: existingUser.profilePic, // <-- use profilePic
         authProvider: existingUser.authProvider,
       },
     });
@@ -82,8 +81,6 @@ export const login = async (req, res, next) => {
 };
 export const updateProfilePic = async (req, res) => {
   try {
-    // console.log("Headers:", req.headers);
-    // console.log(req.body);
     const { image, email } = req.body;
 
     const existingUser = await User.findOne({ email });
@@ -95,7 +92,11 @@ export const updateProfilePic = async (req, res) => {
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
-    const updatedUser = await User.findOneAndUpdate({ email }, { $set: { profilePic: imageUrl } }, { new: true });
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      { $set: { profilePic: imageUrl } },
+      { new: true }
+    );
     return res.status(200).json(updatedUser);
   } catch (error) {
     console.log("Error while updating profile-photo", error.message);
@@ -140,7 +141,31 @@ export const editProfile = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ message: "Profile updated successfully" });
+    // Generate new token after profile update
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      token,
+      user: {
+        username: user.username,
+        email: user.email,
+        profilePic: user.profilePic,
+        authProvider: user.authProvider,
+        currentStreak: user.currentStreak || 0,
+        longestStreak: user.longestStreak || 0,
+        habitsCompleted: user.habitsCompleted || 0,
+        joinDate: user.createdAt,
+        startTime: user.startTime,
+        reminderTime: user.reminderTime,
+        startOfWeek: user.startOfWeek,
+        age: user.age,
+      }
+    });
   } catch (error) {
     console.error("Edit Profile Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -149,7 +174,22 @@ export const editProfile = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
   const user = await User.findById(req.user.userId);
-  res.json(user);
+  if (!user) return res.status(404).json({ message: "User not found" });
+  res.json({
+    username: user.username,
+    email: user.email,
+    profilePic: user.profilePic,
+    authProvider: user.authProvider,
+    currentStreak: user.currentStreak || 0,
+    longestStreak: user.longestStreak || 0,
+    habitsCompleted: user.habitsCompleted || 0,
+    joinDate: user.createdAt, // or format as needed
+    startTime: user.startTime,
+    reminderTime: user.reminderTime,
+    startOfWeek: user.startOfWeek,
+    age: user.age,
+    // add other fields as needed for your frontend
+  });
 }
 // Google OAuth success handler
 export const googleAuthSuccess = async (req, res) => {
@@ -166,11 +206,11 @@ export const googleAuthSuccess = async (req, res) => {
       }
     );
 
-    // Redirect to frontend with token
+    // Redirect to frontend with token and profilePic
     const redirectUrl = `${process.env.FRONTEND_URL}/auth/success?token=${token}&user=${encodeURIComponent(JSON.stringify({
       username: req.user.username,
       email: req.user.email,
-      profilePicture: req.user.profilePicture,
+      profilePic: req.user.profilePic, // <-- use profilePic
       authProvider: req.user.authProvider,
     }))}`;
 

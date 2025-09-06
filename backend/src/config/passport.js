@@ -55,7 +55,7 @@ passport.use(
                     username: profile.displayName || profile.name.givenName,
                     email: profile.emails[0].value,
                     googleId: profile.id,
-                    profilePicture: profile.photos[0]?.value || null,
+                    profilePic: profile.photos[0]?.value,
                     authProvider: 'google',
                 });
 

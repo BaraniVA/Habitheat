@@ -21,10 +21,6 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true, // Allows multiple documents without this field
   },
-  profilePicture: {
-    type: String,
-    default: null,
-  },
   authProvider: {
     type: String,
     enum: ['local', 'google'],

@@ -140,6 +140,7 @@ project/                 # Frontend React application
 │   │   ├── WidgetSettingsModal.tsx # Widget configuration
 |   |   |-- AdvancedFilterModal.tsx # Filter Implementation
 |   |   |-- AuthDebugComponent.tsx  # Authorization Debugging
+|   |   |-- DropdownSettingsMenu.tsx # Dropdown Menu for Settings
 |   |   |-- FilterSummary.tsx       # Summary for all Filters
 |   |   |-- LandingPage.tsx         # Component for Landing Page
 |   |   |-- OAuthSuccess.tsx        # Component for Success state in OAuth

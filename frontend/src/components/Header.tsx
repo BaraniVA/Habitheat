@@ -84,6 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   // Handle logo click: go to dashboard and close menu
   const handleLogoClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     onViewChange('dashboard');
     setIsMobileMenuOpen(false);
   };
